@@ -19,32 +19,43 @@ var squareWidth = 50,
       }
     ];
 
-    function handleKeyDown(e){
-      if(e.key === "Right" || e.key === "ArrowRight"){
-        right = true;
-      }
-      if(e.key === "Left" || e.key === "ArrowLeft"){
-        left = true;
-      }
-    }
-    
-    function handleKeyUp(e){
-      if(e.key === "Right" || e.key === "ArrowRight"){
-        right = false;
-      }
-      if(e.key === "Left" || e.key === "ArrowLeft"){
-        left = false;
-      }
-    }
+function handleKeyDown(e){
+  if(e.key === "Right" || e.key === "ArrowRight"){
+    right = true;
+  }
+  if(e.key === "Left" || e.key === "ArrowLeft"){
+    left = true;
+  }
+}
+
+function handleKeyUp(e){
+  if(e.key === "Right" || e.key === "ArrowRight"){
+    right = false;
+  }
+  if(e.key === "Left" || e.key === "ArrowLeft"){
+    left = false;
+  }
+}
+
+// Columns {0,1,2, .... }
+function availableHeight(column){
+  let occupied = 0;
+  for(const s of squares){
+    if(s.x === posX[column] && s.isMoving === false) occupied += squareWidth; 
+  }
+  return canvas.height - occupied;
+}
 
 function game(){    
   ctx.clearRect(0,0,canvas.width, canvas.height);
+  
 
   for(const s of squares){
     drawBreak(s.x, s.y, squareWidth);
-  
+    let col = posX.indexOf(s.x);
+
     // Falling effect
-    if(s.y + squareWidth < canvas.height && s.isMoving){
+    if(s.y + squareWidth <  availableHeight(col) && s.isMoving){
       s.y += speed;
     }else{
       s.isMoving = false;
