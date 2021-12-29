@@ -1,7 +1,13 @@
 const canvas = document.getElementById("root"),
       pauseBtn = document.getElementById("pause"),
       resumeBtn = document.getElementById("resume"),
-      ctx = canvas.getContext("2d");
+      ctx = canvas.getContext("2d"),
+      colors = ["#FC9918", "#F14A16", "#35589A", "#146356"];
+
+function randomColor(){
+  let rand = Math.round(Math.random() * colors.length);
+  return colors[rand];
+}
 
 var squareWidth = 50,
     numberOfCols = canvas.width/squareWidth,
@@ -13,12 +19,15 @@ var squareWidth = 50,
     timeOut = false,
     squares = [
       {
+       color: randomColor(),
        x: posX[1],
        y: 0,
        isActive: true,
        show: true
       }
     ];
+
+
 
 function handleKeyDown(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
@@ -42,7 +51,7 @@ function main(){
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
   for(const s of squares){
-    drawBreak(s.x, s.y, squareWidth);
+    drawPiece(s.x, s.y, squareWidth, s.color);
     let col = posX.indexOf(s.x);
 
     // Falling effect
@@ -74,15 +83,15 @@ function main(){
     }
   }
 
+  // Create a new square if the last square in the array is not active
   if(squares[squares.length - 1].isActive === false){
-    squares.push({"x": posX[1], "y": 0, "isActive":true, "show": true});
+    squares.push({"color": randomColor(), "x": posX[1], "y": 0, "isActive":true, "show": true});
   }
 
   /* If three squares have the same Y position and are not moving make them 
      disappear and add points to score  */
    
   let count = 0;
-  let y_registered = null;
   for(let a = 0; a < squares.length; a++){
       for(let b = a+1; b < squares.length; b++){
         // Compare only if neither piece is moving
@@ -159,10 +168,10 @@ function isLeftAvailable(movingSquare){
 
 
 
-function drawBreak(posX, posY, width){
+function drawPiece(posX, posY, width, color){
   ctx.beginPath();
   ctx.rect(posX, posY, width, width);
-  ctx.fillStyle = "#FF0000";
+  ctx.fillStyle = color;
   ctx.fill();
   ctx.closePath();
 }
