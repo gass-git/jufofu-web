@@ -46,6 +46,49 @@ function availableHeight(column){
   return canvas.height - occupied;
 }
 
+function isRightAvailable(movingSquare){
+  heightOccupied = 0;
+
+  let rightCol = posX.indexOf(movingSquare.x) + 1;
+
+  for(const s of squares){
+    if(s.x === posX[rightCol] && s.isMoving === false){
+      heightOccupied += squareWidth;
+    }
+  }
+
+  console.log(heightOccupied)
+
+  if(movingSquare.y + squareWidth < canvas.height - heightOccupied){
+    return true;
+  } else{
+    return false;
+  }
+  
+}
+
+function isLeftAvailable(movingSquare){
+  heightOccupied = 0;
+
+  // Get left column
+  let leftCol = posX.indexOf(movingSquare.x) - 1;
+
+  for(const s of squares){
+    if(s.x === posX[leftCol] && s.isMoving === false){
+      heightOccupied += squareWidth;
+    }
+  }
+
+  console.log(heightOccupied)
+
+  if(movingSquare.y + squareWidth < canvas.height - heightOccupied){
+    return true;
+  } else{
+    return false;
+  }
+  
+}
+
 function game(){    
   ctx.clearRect(0,0,canvas.width, canvas.height);
   
@@ -63,18 +106,24 @@ function game(){
 
     // Sideways movement
     if(left && timeOut === false && s.isMoving && (s.x === posX[1] || s.x === posX[2])){
-      let i = posX.indexOf(s.x);
-      console.log(posX[i])
-      s.x = posX[i - 1];
-      timeOut = true;
-      setTimeout(()=>{ timeOut = false },120)
-      console.log(s)
+      
+      // Check left
+      if(isLeftAvailable(s)){
+        let i = posX.indexOf(s.x);
+        console.log(posX[i])
+        s.x = posX[i - 1];
+        timeOut = true;
+        setTimeout(()=>{ timeOut = false },120)
+      }
     }else if(right && timeOut === false && s.isMoving && (s.x === posX[0] || s.x === posX[1])){
-      let i = posX.indexOf(s.x);
-      s.x = posX[i + 1];
-      timeOut = true;
-      setTimeout(()=>{ timeOut = false },120)
-      console.log(s)
+      // Check left
+      if(isRightAvailable(s)){
+        let i = posX.indexOf(s.x);
+        s.x = posX[i + 1];
+        timeOut = true;
+        setTimeout(()=>{ timeOut = false },120)
+        console.log(s)
+      }
     }
   }
 
