@@ -15,7 +15,7 @@ var squareWidth = 50,
       {
        x: posX[1],
        y: 0,
-       isMoving: true,
+       isActive: true,
        show: true
       }
     ];
@@ -46,37 +46,36 @@ function main(){
     let col = posX.indexOf(s.x);
 
     // Falling effect
-    if(s.y + squareWidth <  availableHeight(col) && s.isMoving){
+    let squareBottomPosY = s.y + squareWidth;
+
+    if(squareBottomPosY <= availableHeight(col)){
       s.y += speed;
     }else{
-      s.isMoving = false;
+      s.isActive = false;
     }
 
     // Sideways movement
-    if(left && timeOut === false && s.isMoving && (s.x === posX[1] || s.x === posX[2])){
-      
-      // Check left
-      if(isLeftAvailable(s)){
+    if(left && s.isActive && (s.x === posX[1] || s.x === posX[2])){
+      if(isLeftAvailable(s) && timeOut === false){
         let i = posX.indexOf(s.x);
-        console.log(posX[i])
         s.x = posX[i - 1];
         timeOut = true;
         setTimeout(()=>{ timeOut = false },120)
       }
-    }else if(right && timeOut === false && s.isMoving && (s.x === posX[0] || s.x === posX[1])){
-      // Check left
-      if(isRightAvailable(s)){
+    }
+
+    if(right && s.isActive && (s.x === posX[0] || s.x === posX[1])){
+      if(isRightAvailable(s) && timeOut === false){
         let i = posX.indexOf(s.x);
         s.x = posX[i + 1];
         timeOut = true;
         setTimeout(()=>{ timeOut = false },120)
-        console.log(s)
       }
     }
   }
 
-  if(squares[squares.length - 1].isMoving === false){
-    squares.push({"x": posX[1], "y": 0, "isMoving":true, "show": true});
+  if(squares[squares.length - 1].isActive === false){
+    squares.push({"x": posX[1], "y": 0, "isActive":true, "show": true});
   }
 
   /* If three squares have the same Y position and are not moving make them 
@@ -87,7 +86,7 @@ function main(){
   for(let a = 0; a < squares.length; a++){
       for(let b = a+1; b < squares.length; b++){
         // Compare only if neither piece is moving
-        if(squares[a].isMoving === false && squares[b].isMoving === false){
+        if(squares[a].isActive === false && squares[b].isActive === false){
           if(squares[a].y === squares[b].y){
             count++;
           }
@@ -96,7 +95,7 @@ function main(){
     if(count === numberOfCols - 1){
       squares = squares.filter(square => square.y !== squares[a].y);
       for(const s of squares){
-        s.isMoving = true;
+        s.isActive = true;
       }
       break;
     }else{
@@ -110,7 +109,7 @@ function main(){
 function availableHeight(column){
   let occupied = 0;
   for(const s of squares){
-    if(s.x === posX[column] && s.isMoving === false) occupied += squareWidth; 
+    if(s.x === posX[column] && s.isActive === false) occupied += squareWidth; 
   }
   return canvas.height - occupied;
 }
@@ -121,7 +120,7 @@ function isRightAvailable(movingSquare){
   let rightCol = posX.indexOf(movingSquare.x) + 1;
 
   for(const s of squares){
-    if(s.x === posX[rightCol] && s.isMoving === false){
+    if(s.x === posX[rightCol] && s.isActive === false){
       heightOccupied += squareWidth;
     }
   }
@@ -143,7 +142,7 @@ function isLeftAvailable(movingSquare){
   let leftCol = posX.indexOf(movingSquare.x) - 1;
 
   for(const s of squares){
-    if(s.x === posX[leftCol] && s.isMoving === false){
+    if(s.x === posX[leftCol] && s.isActive === false){
       heightOccupied += squareWidth;
     }
   }
