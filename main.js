@@ -6,6 +6,7 @@ const canvas = document.getElementById("root"),
       colors = ["#FC9918", "#F14A16", "#35589A", "#146356"],
       squareWidth = 50,
       cols = canvas.width/squareWidth,
+      positions_x_axis = [0, squareWidth, 2*squareWidth],
       speed = 0.8,
       boost = 5;
 
@@ -13,7 +14,6 @@ var score = 0,
     right = false,
     left = false,
     down = false,
-    positions_x_axis = [0, squareWidth, 2*squareWidth],
     timeOut = false,
     squares = [];
       
@@ -75,7 +75,7 @@ function main(){
         squareBottomPosY = square.y + square.width;
 
     if(squareBottomPosY <= availableHeight(col)){
-      if(down && s.isActive && squareBottomPosY + boost < availableHeight(col)){
+      if(down && square.isActive && squareBottomPosY + boost < availableHeight(col)){
         square.y += boost + speed;
       }else{
         square.y += speed;
@@ -109,63 +109,61 @@ function main(){
     }
   });
 
-    /* 
-    IF:
-    - three squares have the same Y axis position. 
-    - are not moving.
-    ----> Make them disappear and add points to score.  
-    */
-    let count = 0;
-    for(let a = 0; a < squares.length; a++){
-      
-      for(let b = a+1; b < squares.length; b++){
-        // Compare only if neither of the pieces are moving
-        if(squares[a].isActive === false && squares[b].isActive === false){
-          if(Math.floor(squares[a].y) === Math.floor(squares[b].y)){
-            count++;
-          }
+  /* IF:
+  - three squares have the same Y axis position. 
+  - are not moving.
+  ----> Make them disappear and add points to score.  
+  */
+  let count = 0;
+  for(let a = 0; a < squares.length; a++){
+    
+    for(let b = a+1; b < squares.length; b++){
+      // Compare only if neither of the pieces are moving
+      if(squares[a].isActive === false && squares[b].isActive === false){
+        if(Math.floor(squares[a].y) === Math.floor(squares[b].y)){
+          count++;
         }
-      }
-      // For the case of three columns we only need a count of 2 (e.g: a = b and a = c)
-      if(count === cols - 1){
-        
-        // Check if pieces are of the same color
-        let colorCount = 0;
-        let sameColor = false;
-        for(const s of squares){
-          if(Math.floor(s.y) === Math.floor(squares[a].y) && s.color === squares[a].color){
-            colorCount++;
-          }
-        }
-        if(colorCount === 3){
-          sameColor = true;
-        }
-  
-        // Add points to total score
-        for(const s of squares){
-          if(Math.floor(s.y) === Math.floor(squares[a].y)){
-            if(sameColor){
-              score += s.points * 2;
-            }else{
-              score += s.points;
-            }
-          }
-        }
-        
-        // Remove aligned squares
-        squares = squares.filter(square => Math.floor(square.y) !== Math.floor(squares[a].y));
-        
-        /* Important: when pieces are removed all other pieces
-          that where above them will move */
-        for(const s of squares){
-          s.isMoving = true;
-        }
-        break;
-      }else{
-        count = 0; // reset counter
       }
     }
+    // For the case of three columns we only need a count of 2 (e.g: a = b and a = c)
+    if(count === cols - 1){
+      
+      // Check if pieces are of the same color
+      let colorCount = 0;
+      let sameColor = false;
+      for(const s of squares){
+        if(Math.floor(s.y) === Math.floor(squares[a].y) && s.color === squares[a].color){
+          colorCount++;
+        }
+      }
+      if(colorCount === 3){
+        sameColor = true;
+      }
 
+      // Add points to total score
+      for(const s of squares){
+        if(Math.floor(s.y) === Math.floor(squares[a].y)){
+          if(sameColor){
+            score += s.points * 2;
+          }else{
+            score += s.points;
+          }
+        }
+      }
+      
+      // Remove aligned squares
+      squares = squares.filter(square => Math.floor(square.y) !== Math.floor(squares[a].y));
+      
+      /* Important: when pieces are removed all other pieces
+        that where above them will move */
+      for(const s of squares){
+        s.isMoving = true;
+      }
+      break;
+    }else{
+      count = 0; // reset counter
+    }
+  }
 }
 
 // Columns {0,1,2, .... }
