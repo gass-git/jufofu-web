@@ -3,12 +3,16 @@ const canvas = document.getElementById("root"),
       resumeBtn = document.getElementById("resume"),
       scoreDiv = document.getElementById("score"),
       ctx = canvas.getContext("2d"),
-      colors = ["#FC9918", "#F14A16", "#35589A", "#146356"],
-      squareWidth = 50,
+      colors = ["#FC9918", "#F14A16", "#35589A"],
+      squareWidth = 35,
       cols = canvas.width/squareWidth,
-      positions_x_axis = [0, squareWidth, 2*squareWidth],
+      positions_x_axis = [],
       speed = 0.8,
       boost = 5;
+
+for(let i = 0; i < cols; i++){
+  positions_x_axis.push(squareWidth*i);
+}
 
 var score = 0,
     right = false,
@@ -25,11 +29,11 @@ function randomColor(){
 function randomPoints(){
   let rand = Math.random();
   if(rand < 0.1){
-    return 100;
+    return 9;
     }else if(rand < 0.2){
-      return 50;
+      return 5;
       }else if(rand < 0.5){
-        return 20;
+        return 2;
         }else {
           return 1;
         }
@@ -40,7 +44,7 @@ class square {
     this.width = squareWidth,
     this.points = randomPoints(),
     this.color = randomColor(),
-    this.x = positions_x_axis[1],
+    this.x = positions_x_axis[2],
     this.y = 0,
     this.isMoving = true,
     this.isActive = true
@@ -85,9 +89,12 @@ function main(){
       square.isActive = false;
     }
 
-     // Sideways movement
-     if(left && square.isActive){
-      if(square.x === positions_x_axis[1] || square.x === positions_x_axis[2]){
+    /* 
+      HORIZONTAL MOVEMENT
+    */
+    if(left && square.isActive){
+       // Does the square have a column available to the left?
+      if(square.x !== positions_x_axis[0]){
         if(isLeftAvailable(square) && timeOut === false){
           let i = positions_x_axis.indexOf(square.x); 
           square.x = positions_x_axis[i - 1];
@@ -98,7 +105,8 @@ function main(){
     }
 
     if(right && square.isActive){
-      if(square.x === positions_x_axis[0] || square.x === positions_x_axis[1]){
+      // Does the square have a column available to the right?
+      if(square.x !== positions_x_axis[positions_x_axis.length - 1]){
         if(isRightAvailable(square) && timeOut === false){
           let i = positions_x_axis.indexOf(square.x);
           square.x = positions_x_axis[i + 1];
@@ -169,7 +177,7 @@ function main(){
 // Columns {0,1,2, .... }
 function availableHeight(col){
   let occupied = 0;
-  // Sum up the pixels been occupied in a column
+  // Sum up the pixels been occupied on a column
   squares.forEach((square) => {
     if(square.x === positions_x_axis[col]){
       if(square.isMoving === false && square.isActive === false){
@@ -224,8 +232,6 @@ function isLeftAvailable(movingSquare){
   }
 }
 
-
-
 function handleKeyDown(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
     right = true;
@@ -255,10 +261,10 @@ function drawPiece(posX, posY, color, points){
   ctx.rect(posX, posY, squareWidth, squareWidth);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.font= "30px Comic Sans MS";
+  ctx.font= "28px Helvetica";
   ctx.textAlign = "left";
   ctx.fillStyle = "white";
-  ctx.fillText(points, posX, posY + squareWidth);
+  ctx.fillText(points, posX+9, posY-7 + squareWidth);
   ctx.closePath();
 }
 
