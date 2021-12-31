@@ -3,12 +3,13 @@ const canvas = document.getElementById("root"),
       resumeBtn = document.getElementById("resume"),
       scoreDiv = document.getElementById("score"),
       ctx = canvas.getContext("2d"),
-      colors = ["#FC9918", "#F14A16", "#35589A"],
-      squareWidth = 35,
+      colors = ["#FC9918", "#F14A16", "#FFFFFF"],
+      squareWidth = 40,
       cols = canvas.width/squareWidth,
       positions_x_axis = [],
-      speed = 0.8,
-      boost = 5;
+      speed = 1.5,
+      boost = 7,
+      isBoostEnabled = false;
 
 for(let i = 0; i < cols; i++){
   positions_x_axis.push(squareWidth*i);
@@ -26,23 +27,9 @@ function randomColor(){
   return colors[rand];
 }
 
-function randomPoints(){
-  let rand = Math.random();
-  if(rand < 0.1){
-    return 9;
-    }else if(rand < 0.2){
-      return 5;
-      }else if(rand < 0.5){
-        return 2;
-        }else {
-          return 1;
-        }
-}
-
 class square {
   constructor(){
     this.width = squareWidth,
-    this.points = randomPoints(),
     this.color = randomColor(),
     this.x = positions_x_axis[2],
     this.y = 0,
@@ -70,8 +57,7 @@ function main(){
     drawPiece(
       square.x,
       square.y,
-      square.color,
-      square.points
+      square.color
     );
     
     // Falling effect
@@ -79,8 +65,8 @@ function main(){
         squareBottomPosY = square.y + square.width;
 
     if(squareBottomPosY <= availableHeight(col)){
-      if(down && square.isActive && squareBottomPosY + boost < availableHeight(col)){
-        square.y += boost + speed;
+      if(down && square.isActive && squareBottomPosY < availableHeight(col)){
+        isBoostEnabled ? square.y += boost + speed : square.y += speed;
       }else{
         square.y += speed;
       }
@@ -120,47 +106,65 @@ function main(){
   /* IF:
   - three squares have the same Y axis position. 
   - are not moving.
+  - have the same color
+  - the white piece is valid for both colors (comodin)
   ----> Make them disappear and add points to score.  
   */
   let count = 0;
+  let colArray = [];
   for(let a = 0; a < squares.length; a++){
-    
+    colArray = [];
     for(let b = a+1; b < squares.length; b++){
       // Compare only if neither of the pieces are moving
       if(squares[a].isActive === false && squares[b].isActive === false){
+        // If squares are in the same row 
         if(Math.floor(squares[a].y) === Math.floor(squares[b].y)){
+          if(colArray.length < 1){
+            colArray.push(squares[a].color);
+          }
+          colArray.push(squares[b].color);
           count++;
         }
       }
     }
+
+    // count squares of color orange
+    let orangeCount = 0;
+    for(const color of colArray){
+      if(color === "#FC9918"){
+        orangeCount++;
+      }
+    }
+
+    // count squares of color red
+    let redCount = 0;
+    for(const color of colArray){
+      if(color === "#F14A16"){
+        redCount++;
+      }
+    }
+
+    // count bonus squares 
+    let bonusCount = 0;
+    for(const color of colArray){
+      if(color === "#FFFFFF"){
+        bonusCount++;
+      }
+    }
+
+    /* sum up both cases. If either of them is equal to the number of columns 
+        make the row disapper */
+
+    let countOne = orangeCount + bonusCount;
+    let countTwo = redCount + bonusCount;
+
     // For the case of three columns we only need a count of 2 (e.g: a = b and a = c)
-    if(count === cols - 1){
-      
-      // Check if pieces are of the same color
-      let colorCount = 0;
-      let sameColor = false;
-      for(const s of squares){
-        if(Math.floor(s.y) === Math.floor(squares[a].y) && s.color === squares[a].color){
-          colorCount++;
-        }
-      }
-      if(colorCount === 3){
-        sameColor = true;
-      }
+    if(countOne === cols || countTwo === cols ){
+      // Remove aligned squares of the same color
+      squares = squares.filter(square => Math.floor(square.y) !== Math.floor(squares[a].y));
 
       // Add points to total score
-      for(const s of squares){
-        if(Math.floor(s.y) === Math.floor(squares[a].y)){
-          if(sameColor){
-            score += s.points * 2;
-          }else{
-            score += s.points;
-          }
-        }
-      }
-      
-      // Remove aligned squares
-      squares = squares.filter(square => Math.floor(square.y) !== Math.floor(squares[a].y));
+      score += cols;
       
       /* Important: when pieces are removed all other pieces
         that where above them will move */
@@ -256,15 +260,12 @@ function handleKeyUp(e){
   }
 }
 
-function drawPiece(posX, posY, color, points){
+function drawPiece(posX, posY, color){
   ctx.beginPath();
   ctx.rect(posX, posY, squareWidth, squareWidth);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.font= "28px Helvetica";
-  ctx.textAlign = "left";
-  ctx.fillStyle = "white";
-  ctx.fillText(points, posX+9, posY-7 + squareWidth);
+  ctx.stroke();
   ctx.closePath();
 }
 
