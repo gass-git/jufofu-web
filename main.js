@@ -7,21 +7,23 @@ const canvas = document.getElementById("root"),
 
 // Color constants    
 const jokerColor = "#E1E8EB",
+      bombColor = "#2C272E",
       colors = ["#FFC900", "#7900FF", jokerColor],
       colorsToAdd = ["#34BE82", "#FF7F00", "#727200", "#AA6739"],
       framesToAddColor = 6000; // 100 equals 1 second
 
 // General game constants      
-const squareWidth = 40,
-      numberOfColumns = canvas.width/squareWidth,
+const pieceWidth = 40,
+      bombRadius = 40,
+      numberOfColumns = canvas.width/pieceWidth,
       positions_x_axis = [],
-      speed = 1.5,
+      speed = 2.5,
       boost = 7,
       isBoostEnabled = false;
 
 // Populate positions_x_axis array      
 for(let i = 0; i < numberOfColumns; i++){
-  positions_x_axis.push(squareWidth*i);
+  positions_x_axis.push(pieceWidth*i);
 }
 
 // Movement variables
@@ -32,19 +34,20 @@ var right = false,
 // Other global variables   
 var score = 0,
     timeOut = false,
-    squares = [],
+    pieces = [],
     frames = 0,
     addedColorsCount = 0;
-      
+       
 function randomColor(){
   let rand = Math.round(Math.random() * (colors.length - 1));
   return colors[rand];
 }
 
-class square {
-  constructor(){
-    this.width = squareWidth,
-    this.color = randomColor(),
+class piece {
+  constructor(type, pieceColor){
+    this.type = type,
+    this.width = pieceWidth,
+    this.color = pieceColor,
     this.x = positions_x_axis[2],
     this.y = 0,
     this.isMoving = true,
@@ -55,7 +58,9 @@ class square {
 function main(){
   // Count the frames
   frames++;
+  
   // When frames reach a certain amount push a new color to the colors array
+  // Note: this is to make the game harder as it progresses
   if(frames === framesToAddColor){
     colors.push(colorsToAdd[addedColorsCount]);
     addedColorsCount++;
@@ -63,175 +68,280 @@ function main(){
   }
 
   /* 
-  - create a square at the start of the game.
-  - create a square if the last one is not active. 
+  - create a piece at the start of the game.
+  - create a piece if the last one is not active. 
   */
-  let arrLength = squares.length,
-      lastSquare = squares[arrLength - 1];
+  let numberOfPieces = pieces.length,
+      lastpiece = pieces[numberOfPieces - 1];
 
-  if(arrLength < 1 || lastSquare.isActive === false){
-    squares.push(new square()); 
+  // Conditions for creating a piece with type="square" or type="bomb"     
+  if(numberOfPieces < 1 || lastpiece.isActive === false){
+    if(numberOfPieces > 5){
+      let rand = Math.random();
+      rand < 0.2 ? pieces.push(new piece("bomb", bombColor)) : pieces.push(new piece("square", randomColor()));
+    }else{
+      pieces.push(new piece("square", randomColor())); 
+    }
   }
 
   scoreDiv.innerHTML = score;
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
-  squares.forEach((square) => {
+  pieces.forEach((piece) => {
+    
     drawPiece(
-      square.x,
-      square.y,
-      square.color
+      piece.type,
+      piece.x,
+      piece.y,
+      piece.color
     );
     
     // Falling effect
-    let col = positions_x_axis.indexOf(square.x),
-        squareBottomPosY = square.y + square.width;
+    let col = positions_x_axis.indexOf(piece.x),
+        pieceBottomPosY = piece.y + piece.width;
 
-    if(squareBottomPosY <= availableHeight(col)){
-      if(down && square.isActive && squareBottomPosY < availableHeight(col)){
-        isBoostEnabled ? square.y += boost + speed : square.y += speed;
+    if(pieceBottomPosY <= availableHeight(col)){
+      if(down && piece.isActive && pieceBottomPosY < availableHeight(col)){
+        isBoostEnabled ? piece.y += boost + speed : piece.y += speed;
       }else{
-        square.y += speed;
+        piece.y += speed;
       }
     }else{
-      square.isMoving = false;
-      square.isActive = false;
+      piece.isMoving = false;
+      piece.isActive = false;
     }
 
     /* 
       HORIZONTAL MOVEMENT
     */
-    if(left && square.isActive){
-       // Does the square have a column available to the left?
-      if(square.x !== positions_x_axis[0]){
-        if(isLeftAvailable(square) && timeOut === false){
-          let i = positions_x_axis.indexOf(square.x); 
-          square.x = positions_x_axis[i - 1];
+    if(left && piece.isActive){
+       // Does the piece have a column available to the left?
+      if(piece.x !== positions_x_axis[0]){
+        if(isLeftAvailable(piece) && timeOut === false){
+          let i = positions_x_axis.indexOf(piece.x); 
+          piece.x = positions_x_axis[i - 1];
           timeOut = true;
           setTimeout(()=>{ timeOut = false },120)
         }
       }
     }
 
-    if(right && square.isActive){
-      // Does the square have a column available to the right?
-      if(square.x !== positions_x_axis[positions_x_axis.length - 1]){
-        if(isRightAvailable(square) && timeOut === false){
-          let i = positions_x_axis.indexOf(square.x);
-          square.x = positions_x_axis[i + 1];
+    if(right && piece.isActive){
+      // Does the piece have a column available to the right?
+      if(piece.x !== positions_x_axis[positions_x_axis.length - 1]){
+        if(isRightAvailable(piece) && timeOut === false){
+          let i = positions_x_axis.indexOf(piece.x);
+          piece.x = positions_x_axis[i + 1];
           timeOut = true;
           setTimeout(()=>{ timeOut = false },120)
         }
       }  
     }
+
   });
 
-  let count = 0;
-  let colorsInRow = [];
-  for(let a = 0; a < squares.length; a++){
-    colorsInRow = [];
-    for(let b = a+1; b < squares.length; b++){
-      // Compare only if neither of the pieces are moving
-      if(squares[a].isActive === false && squares[b].isActive === false){
-        // Are squares in the same row?
-        if(Math.floor(squares[a].y) === Math.floor(squares[b].y)){
-          // If the colorsInRow array is empty add squares[a]
-          // Note: is important to add this square only once because it repeats inside this loop
-          if(colorsInRow.length < 1){
-            colorsInRow.push(squares[a].color);
+  let lastPiece = pieces[pieces.length - 1];
+  if(lastPiece.type === "bomb" && lastPiece.isMoving === false){
+    let bomb = lastPiece;
+
+    // Remove the left piece if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x - pieceWidth && p.y === bomb.y){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the right piece if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x + pieceWidth && p.y === bomb.y){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+     // Remove the bottom piece if exists
+     pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x && p.y === bomb.y + pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the top piece if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x && p.y === bomb.y - pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the diagonal left-top if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x - pieceWidth && p.y === bomb.y - pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the diagonal left-bottom if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x - pieceWidth && p.y === bomb.y + pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the diagonal right-top if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x + pieceWidth && p.y === bomb.y - pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the diagonal right-bottom if exists
+    pieces = pieces.filter((p) => { 
+      if(p.x === bomb.x + pieceWidth && p.y === bomb.y + pieceWidth){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    // Remove the bomb
+    pieces = pieces.filter((p) => { 
+      if(p.type === bomb.type){
+        return false;
+      }else{
+        return true;
+      }
+    });
+
+    /* Important: when pieces are removed all other pieces
+          that where above them will move */
+    for(const s of pieces){
+      s.isMoving = true;
+    }
+
+  }else{
+    let count = 0;
+    let colorsInRow = [];
+    for(let a = 0; a < pieces.length; a++){
+      colorsInRow = [];
+      for(let b = a+1; b < pieces.length; b++){
+        // Compare only if neither of the pieces are moving
+        if(pieces[a].isActive === false && pieces[b].isActive === false){
+          // Are pieces in the same row?
+          if(Math.floor(pieces[a].y) === Math.floor(pieces[b].y)){
+            // If the colorsInRow array is empty add pieces[a]
+            // Note: is important to add this piece only once because it repeats inside this loop
+            if(colorsInRow.length < 1){
+              colorsInRow.push(pieces[a].color);
+            }
+            colorsInRow.push(pieces[b].color);
+            count++;
           }
-          colorsInRow.push(squares[b].color);
-          count++;
         }
       }
-    }
 
-    let colorCount = 0, removeRow = false, jokersCount = 0;
+      let colorCount = 0, removeRow = false, jokersCount = 0;
 
-    // Count jokers in this column
-    colorsInRow.forEach((color) => {
-      color === jokerColor ? jokersCount++ : null
-    });
+      // Count jokers in this column
+      colorsInRow.forEach((color) => {
+        color === jokerColor ? jokersCount++ : null
+      });
 
-    // Remove row ?
-    colors.forEach((color) => {
-      for(const squareColor of colorsInRow){
-        color === squareColor && color !== jokerColor ? colorCount++ : null;
-      }
-      colorCount + jokersCount === numberOfColumns ? removeRow = true : colorCount = 0;
-    });
-    
-    if(removeRow){
-      // Remove aligned squares of the same color
-      squares = squares.filter(square => Math.floor(square.y) !== Math.floor(squares[a].y));
-
-      // Add points to total score
-      score += numberOfColumns;
+      // Remove row ?
+      colors.forEach((color) => {
+        for(const pieceColor of colorsInRow){
+          color === pieceColor && color !== jokerColor ? colorCount++ : null;
+        }
+        colorCount + jokersCount === numberOfColumns ? removeRow = true : colorCount = 0;
+      });
       
-      /* Important: when pieces are removed all other pieces
-         that where above them will move */
-      for(const s of squares){
-        s.isMoving = true;
+      if(removeRow){
+        // Remove aligned pieces of the same color
+        pieces = pieces.filter(p => Math.floor(p.y) !== Math.floor(pieces[a].y));
+
+        // Add points to total score
+        score += numberOfColumns;
+        
+        /* Important: when pieces are removed all other pieces
+          that where above them will move */
+        for(const s of pieces){
+          s.isMoving = true;
+        }
+        break;
+      }else{
+        count = 0; // reset counter
       }
-      break;
-    }else{
-      count = 0; // reset counter
     }
   }
+
+  
+      
 }
 
 // Columns {0,1,2, .... }
 function availableHeight(col){
   let occupied = 0;
   // Sum up the pixels been occupied on a column
-  squares.forEach((square) => {
-    if(square.x === positions_x_axis[col]){
-      if(square.isMoving === false && square.isActive === false){
-        occupied += squareWidth;
+  pieces.forEach((piece) => {
+    if(piece.x === positions_x_axis[col]){
+      if(piece.isMoving === false && piece.isActive === false){
+        occupied += pieceWidth;
       }  
     }
   });
   return (canvas.height - occupied);
 }
 
-function isRightAvailable(movingSquare){
+function isRightAvailable(movingpiece){
   let heightOccupied = 0,
-      rightCol = positions_x_axis.indexOf(movingSquare.x) + 1;
+      rightCol = positions_x_axis.indexOf(movingpiece.x) + 1;
 
   /* 
-    Check if there are square to the right side and if so
+    Check if there are piece to the right side and if so
     get the height been occupied by them.
   */  
-  squares.forEach((s) => {
+  pieces.forEach((s) => {
     if(s.x === positions_x_axis[rightCol] && s.isActive === false){
       heightOccupied += s.width;
     }
   });
 
-  // Can the active square move to the right?
-  if(movingSquare.y + movingSquare.width < canvas.height - heightOccupied){
+  // Can the active piece move to the right?
+  if(movingpiece.y + movingpiece.width < canvas.height - heightOccupied){
     return true;
   } else{
     return false;
   }
 }
 
-function isLeftAvailable(movingSquare){
+function isLeftAvailable(movingpiece){
   let heightOccupied = 0,
-      leftCol = positions_x_axis.indexOf(movingSquare.x) - 1;
+      leftCol = positions_x_axis.indexOf(movingpiece.x) - 1;
 
   /* 
-    Check if there are square to the left side and if so
+    Check if there are piece to the left side and if so
     get the height been occupied by them.
   */     
-  squares.forEach((s) => {
+  pieces.forEach((s) => {
     if(s.x === positions_x_axis[leftCol] && s.isActive === false){
       heightOccupied += s.width;
     }
   });
 
-  // Can the active square move to the left?
-  if(movingSquare.y + movingSquare.width < canvas.height - heightOccupied){
+  // Can the active piece move to the left?
+  if(movingpiece.y + movingpiece.width < canvas.height - heightOccupied){
     return true;
   } else{
     return false;
@@ -262,19 +372,34 @@ function handleKeyUp(e){
   }
 }
 
-function drawPiece(posX, posY, color){
+function drawPiece(type, posX, posY, color){
   ctx.beginPath();
-  ctx.rect(posX, posY, squareWidth, squareWidth);
-  ctx.fillStyle = color;
-  ctx.fill();
   
   if(color === jokerColor){
+    ctx.rect(posX, posY, pieceWidth, pieceWidth);
+    ctx.fillStyle = color;
+    ctx.fill();
     ctx.font= "30px Helvetica";
     ctx.textAlign = "left";
     ctx.fillStyle = "black";
-    ctx.fillText("J", posX + 12, posY + squareWidth - 8);
+    ctx.fillText("J", posX + 12, posY + pieceWidth - 8);
+  }else{
+    let radius = pieceWidth/2;
+    
+    switch(type){
+      case "square": 
+      ctx.rect(posX, posY, pieceWidth, pieceWidth);
+      ctx.fillStyle = color;
+      ctx.fill();
+      break;
+
+      case "bomb":
+      ctx.arc(posX + radius, posY + radius, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = color;
+      ctx.fill();
+      break;
+    }
   }
-  
   ctx.closePath();
 }
 
