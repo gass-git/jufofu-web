@@ -17,9 +17,9 @@ const pieceWidth = 40,
       bombRadius = 40,
       numberOfColumns = canvas.width/pieceWidth,
       positions_x_axis = [],
-      speed = 2.5,
-      boost = 7,
-      isBoostEnabled = false;
+      speed = 2, // IMPORTANT: speed and boost must be multiples of 2
+      boost = 4,
+      isBoostEnabled = true;
 
 // Populate positions_x_axis array      
 for(let i = 0; i < numberOfColumns; i++){
@@ -101,8 +101,8 @@ function main(){
         pieceBottomPosY = piece.y + piece.width;
 
     if(pieceBottomPosY <= availableHeight(col)){
-      if(down && piece.isActive && pieceBottomPosY < availableHeight(col)){
-        isBoostEnabled ? piece.y += boost + speed : piece.y += speed;
+      if(down && piece.isActive && pieceBottomPosY + speed*boost < availableHeight(col)){
+        isBoostEnabled ? piece.y += speed*boost : piece.y += speed;
       }else{
         piece.y += speed;
       }
