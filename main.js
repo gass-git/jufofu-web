@@ -3,6 +3,7 @@ const canvas = document.getElementById("root"),
       pauseBtn = document.getElementById("pause"),
       resumeBtn = document.getElementById("resume"),
       scoreDiv = document.getElementById("score"),
+      startBtn = document.getElementById("start"),
       ctx = canvas.getContext("2d");
 
 // Color constants    
@@ -58,7 +59,7 @@ class piece {
 function main(){
   // Count the frames
   frames++;
-  
+
   // When frames reach a certain amount push a new color to the colors array
   // Note: this is to make the game harder as it progresses
   if(frames === framesToAddColor){
@@ -72,18 +73,26 @@ function main(){
   - create a piece if the last one is not active. 
   */
   let numberOfPieces = pieces.length,
-      lastpiece = pieces[numberOfPieces - 1];
+      lastPiece = pieces[numberOfPieces - 1];
 
-  // Conditions for creating a piece with type="square" or type="bomb"     
-  if(numberOfPieces < 1 || lastpiece.isActive === false){
+  
+  if(numberOfPieces < 1 || lastPiece.isActive === false){
     if(numberOfPieces > 5){
+      // Before creating lets check if its game over
+      /* Condition: If the last piece of the array is in position Y = 0 and
+        isMoving = false. */
+      if(lastPiece.y === 0 && lastPiece.isMoving === false){
+        alert('Game Over');
+        interval = clearInterval(interval);
+        startBtn.innerText = "start game";
+      }
       let rand = Math.random();
       rand < 0.2 ? pieces.push(new piece("bomb", bombColor)) : pieces.push(new piece("square", randomColor()));
     }else{
       pieces.push(new piece("square", randomColor())); 
     }
   }
-
+  
   scoreDiv.innerHTML = score;
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
@@ -140,7 +149,7 @@ function main(){
 
   });
 
-  let lastPiece = pieces[pieces.length - 1];
+  lastPiece = pieces[pieces.length - 1];
   if(lastPiece.type === "bomb" && lastPiece.isMoving === false){
     let bomb = lastPiece;
 
@@ -403,9 +412,25 @@ function drawPiece(type, posX, posY, color){
   ctx.closePath();
 }
 
-var interval = setInterval(main, 10);
+var interval;
 
-resumeBtn.addEventListener("click", () => interval = setInterval(main, 10))
-pauseBtn.addEventListener("click", () => clearInterval(interval) )
+startBtn.addEventListener("click", () => {
+  if(startBtn.innerText === "start game"){
+    if(pieces.length > 0){
+      pieces = [];
+    }
+    interval = setInterval(main, 10);
+    startBtn.innerText = "game started";
+  }
+});
+pauseBtn.addEventListener("click", () => {
+  if(pauseBtn.innerText === "pause"){ 
+    pauseBtn.innerText = "resume"; 
+    interval = clearInterval(interval);
+  }else{
+    pauseBtn.innerText = "pause";
+    interval = setInterval(main, 10);
+  }
+});
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
