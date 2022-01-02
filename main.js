@@ -7,19 +7,28 @@ const canvas = document.getElementById("root"),
       ctx = canvas.getContext("2d");
 
 // Color constants    
-const jokerColor = "#E1E8EB",
+// Joker +0 (light-blue), grey rock +1 (light black), copper +2 (brown) 
+// silver +3 (grey), gold +4 (yellow), ruby +5 (red)
+const jokerColor = "#D6E5FA",
+      greyRockColor = "#595260",
+      copperColor = "#DE834D",
+      silverColor = "#D8E3E7",
+      goldColor = "#FFCE45",
+      rubyColor = "#F05454",
       bombColor = "#2C272E",
-      colors = ["#FFC900", "#7900FF", jokerColor],
-      colorsToAdd = ["#34BE82", "#FF7F00", "#727200", "#AA6739"],
+      colors = [jokerColor, greyRockColor, copperColor],
+      colorsToAdd = [silverColor, goldColor, rubyColor],
       framesToAddColor = 6000; // 100 equals 1 second
+
+const points = [0,1,2,3,4,5];
 
 // General game constants      
 const pieceWidth = 40,
       bombRadius = 40,
       numberOfColumns = canvas.width/pieceWidth,
       positions_x_axis = [],
-      speed = 2, // IMPORTANT: speed and boost must be multiples of 2
-      boost = 4,
+      speed = 1, // IMPORTANT: speed and boost must be multiples of 2
+      boost = 6,
       isBoostEnabled = true;
 
 // Populate positions_x_axis array      
@@ -38,11 +47,6 @@ var score = 0,
     pieces = [],
     frames = 0,
     addedColorsCount = 0;
-       
-function randomColor(){
-  let rand = Math.round(Math.random() * (colors.length - 1));
-  return colors[rand];
-}
 
 class piece {
   constructor(type, pieceColor){
@@ -60,39 +64,38 @@ function main(){
   // Count the frames
   frames++;
 
-  // When frames reach a certain amount push a new color to the colors array
-  // Note: this is to make the game harder as it progresses
-  if(frames === framesToAddColor){
+  // Create a piece if there are no pieces
+  if(pieces.length === 0){
+    firstPieceCreate = true;
+    pieces.push(new piece("square", randomColor())); 
+  }
+  
+
+  // When frames reach a certain amount push a new color to the colors array.
+  // Note: this is to make the game harder as it progresses.
+  if(frames === framesToAddColor && colors.length < 6){
     colors.push(colorsToAdd[addedColorsCount]);
     addedColorsCount++;
     frames = 0;
   }
 
-  /* 
-  - create a piece at the start of the game.
-  - create a piece if the last one is not active. 
-  */
+  // Create a new piece if the last one is not active.  
   let numberOfPieces = pieces.length,
       lastPiece = pieces[numberOfPieces - 1];
 
-  
-  if(numberOfPieces < 1 || lastPiece.isActive === false){
-    if(numberOfPieces > 5){
-      // Before creating lets check if its game over
-      /* Condition: If the last piece of the array is in position Y = 0 and
-        isMoving = false. */
-      if(lastPiece.y === 0 && lastPiece.isMoving === false){
-        alert('Game Over');
-        interval = clearInterval(interval);
-        startBtn.innerText = "start game";
-      }
-      let rand = Math.random();
-      rand < 0.2 ? pieces.push(new piece("bomb", bombColor)) : pieces.push(new piece("square", randomColor()));
+  // If there are more than 5 pieces in the game, bombs have a chance of 30% to be created.        
+  if(lastPiece.isActive === false && numberOfPieces <= 5){
+    pieces.push(new piece("square", randomColor())); 
+  }
+  else if(lastPiece.isActive === false && numberOfPieces > 5){
+    // Check if it is game over before creating a new piece.
+    if(lastPiece.y === 0 && lastPiece.isMoving === false){
+      gameOver();
     }else{
-      pieces.push(new piece("square", randomColor())); 
+      Math.random() <= 0.3 ? pieces.push(new piece("bomb", bombColor)) : pieces.push(new piece("square", randomColor()));
     }
   }
-  
+
   scoreDiv.innerHTML = score;
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
@@ -111,7 +114,7 @@ function main(){
 
     if(pieceBottomPosY <= availableHeight(col)){
       if(down && piece.isActive && pieceBottomPosY + speed*boost < availableHeight(col)){
-        isBoostEnabled ? piece.y += speed*boost : piece.y += speed;
+        piece.y += speed*boost;
       }else{
         piece.y += speed;
       }
@@ -196,7 +199,7 @@ function main(){
       }else{
         return true;
       }
-    });
+    })
 
     // Remove the diagonal left-bottom if exists
     pieces = pieces.filter((p) => { 
@@ -205,7 +208,7 @@ function main(){
       }else{
         return true;
       }
-    });
+    })
 
     // Remove the diagonal right-top if exists
     pieces = pieces.filter((p) => { 
@@ -214,7 +217,7 @@ function main(){
       }else{
         return true;
       }
-    });
+    })
 
     // Remove the diagonal right-bottom if exists
     pieces = pieces.filter((p) => { 
@@ -223,7 +226,7 @@ function main(){
       }else{
         return true;
       }
-    });
+    })
 
     // Remove the bomb
     pieces = pieces.filter((p) => { 
@@ -232,7 +235,7 @@ function main(){
       }else{
         return true;
       }
-    });
+    })
 
     /* Important: when pieces are removed all other pieces
           that where above them will move */
@@ -266,7 +269,7 @@ function main(){
       // Count jokers in this column
       colorsInRow.forEach((color) => {
         color === jokerColor ? jokersCount++ : null
-      });
+      })
 
       // Remove row ?
       colors.forEach((color) => {
@@ -274,14 +277,17 @@ function main(){
           color === pieceColor && color !== jokerColor ? colorCount++ : null;
         }
         colorCount + jokersCount === numberOfColumns ? removeRow = true : colorCount = 0;
-      });
+      })
       
       if(removeRow){
         // Remove aligned pieces of the same color
         pieces = pieces.filter(p => Math.floor(p.y) !== Math.floor(pieces[a].y));
 
         // Add points to total score
-        score += numberOfColumns;
+        colorsInRow.forEach((color) => {
+          score += points[colors.indexOf(color)];
+        })
+        
         
         /* Important: when pieces are removed all other pieces
           that where above them will move */
@@ -297,6 +303,17 @@ function main(){
 
   
       
+}
+
+function randomColor(){
+  let rand = Math.round(Math.random() * (colors.length - 1));
+  return colors[rand];
+}
+
+function gameOver(){
+  alert('Game Over');
+  interval = clearInterval(interval);
+  startBtn.innerText = "start game";
 }
 
 // Columns {0,1,2, .... }
