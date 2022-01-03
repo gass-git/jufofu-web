@@ -1,26 +1,38 @@
+/* Pendings: 
+   - change square type to tile
+*/
 // Interface constants
 const canvas = document.getElementById("root"),
-      pauseBtn = document.getElementById("pause"),
-      resumeBtn = document.getElementById("resume"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("start"),
       ctx = canvas.getContext("2d");
 
-// Color constants    
-// Joker +0 (light-blue), grey rock +1 (light black), copper +2 (brown) 
-// silver +3 (grey), gold +4 (yellow), ruby +5 (red)
-const jokerColor = "#D6E5FA",
-      greyRockColor = "#595260",
-      copperColor = "#DE834D",
-      silverColor = "#D8E3E7",
-      goldColor = "#FFCE45",
-      rubyColor = "#F05454",
-      bombColor = "#2C272E",
-      colors = [jokerColor, greyRockColor, copperColor],
-      colorsToAdd = [silverColor, goldColor, rubyColor],
-      framesToAddColor = 6000; // 100 equals 1 second
+const greenTile = new Image(),
+      blueTile = new Image(),
+      greyTile = new Image(),
+      orangeTile = new Image(),
+      pinkTile = new Image(),
+      redTile = new Image(),
+      yellowTile = new Image(),
+      blackCircle = new Image();
 
-const points = [0,1,2,3,4,5];
+greenTile.src = "images/greenTile.png";
+blueTile.src = "images/blueTile.png";
+greyTile.src = "images/greyTile.png";
+orangeTile.src = "images/orangeTile.png";
+pinkTile.src = "images/pinkTile.png";
+redTile.src = "images/redTile.png";
+yellowTile.src = "images/yellowTile.png";
+blackCircle.src = "images/blackCircle.png";
+
+const activeTileTypes = [greenTile, blueTile, greyTile],
+      tileTypesToActivate = [orangeTile, pinkTile, redTile, yellowTile];
+
+      /*colors = [jokerColor, greyRockColor, copperColor],
+      colorsToAdd = [silverColor, goldColor, rubyColor], */
+
+      // Number of frames required to activate a new tile type
+      framesForActivation = 3000; // 100 equals 1 second
 
 // General game constants      
 const pieceWidth = 40,
@@ -45,14 +57,14 @@ var right = false,
 var score = 0,
     timeOut = false,
     pieces = [],
-    frames = 0,
-    addedColorsCount = 0;
+    frames = 0, 
+    isGameOver = false;
 
 class piece {
-  constructor(type, pieceColor){
+  constructor(type, image){
     this.type = type,
+    this.tileType = image, 
     this.width = pieceWidth,
-    this.color = pieceColor,
     this.x = positions_x_axis[2],
     this.y = 0,
     this.isMoving = true,
@@ -60,22 +72,34 @@ class piece {
   }
 }
 
-function main(){
+function randomTileType(){
+  let rand = Math.round(Math.random() * (activeTileTypes.length - 1));
+  return activeTileTypes[rand];
+}
+
+function init(){
+    
+    // Start the first frame request
+    window.requestAnimationFrame(gameLoop);
+}
+
+function gameLoop(){
   // Count the frames
   frames++;
 
   // Create a piece if there are no pieces
   if(pieces.length === 0){
     firstPieceCreate = true;
-    pieces.push(new piece("square", randomColor())); 
+    pieces.push(
+      new piece("square", randomTileType())
+    ); 
   }
   
 
   // When frames reach a certain amount push a new color to the colors array.
   // Note: this is to make the game harder as it progresses.
-  if(frames === framesToAddColor && colors.length < 6){
-    colors.push(colorsToAdd[addedColorsCount]);
-    addedColorsCount++;
+  if(frames === framesForActivation && activeTileTypes.length < 7){
+    activeTileTypes.push(tileTypesToActivate[activeTileTypes.length - 3]);
     frames = 0;
   }
 
@@ -85,14 +109,15 @@ function main(){
 
   // If there are more than 5 pieces in the game, bombs have a chance of 30% to be created.        
   if(lastPiece.isActive === false && numberOfPieces <= 5){
-    pieces.push(new piece("square", randomColor())); 
+    pieces.push(new piece("square", randomTileType())); 
   }
   else if(lastPiece.isActive === false && numberOfPieces > 5){
     // Check if it is game over before creating a new piece.
     if(lastPiece.y === 0 && lastPiece.isMoving === false){
-      gameOver();
+      isGameOver = true;
+      showGameOverMsg();
     }else{
-      Math.random() <= 0.3 ? pieces.push(new piece("bomb", bombColor)) : pieces.push(new piece("square", randomColor()));
+      Math.random() <= 0.3 ? pieces.push(new piece("bomb", blackCircle)) : pieces.push(new piece("square", randomTileType()));
     }
   }
 
@@ -101,12 +126,7 @@ function main(){
 
   pieces.forEach((piece) => {
     
-    drawPiece(
-      piece.type,
-      piece.x,
-      piece.y,
-      piece.color
-    );
+    drawTile(piece.tileType, piece.x, piece.y);
     
     // Falling effect
     let col = positions_x_axis.indexOf(piece.x),
@@ -244,10 +264,10 @@ function main(){
     }
 
   }else{
-    let count = 0;
-    let colorsInRow = [];
+    //let count = 0;
+    let tilesInRow = [];
     for(let a = 0; a < pieces.length; a++){
-      colorsInRow = [];
+      tilesInRow = [];
       for(let b = a+1; b < pieces.length; b++){
         // Compare only if neither of the pieces are moving
         if(pieces[a].isActive === false && pieces[b].isActive === false){
@@ -255,28 +275,28 @@ function main(){
           if(Math.floor(pieces[a].y) === Math.floor(pieces[b].y)){
             // If the colorsInRow array is empty add pieces[a]
             // Note: is important to add this piece only once because it repeats inside this loop
-            if(colorsInRow.length < 1){
-              colorsInRow.push(pieces[a].color);
+            if(tilesInRow.length < 1){
+              tilesInRow.push(pieces[a].tileType);
             }
-            colorsInRow.push(pieces[b].color);
-            count++;
+            tilesInRow.push(pieces[b].tileType);
+            //count++;
           }
         }
       }
 
-      let colorCount = 0, removeRow = false, jokersCount = 0;
+      let tileTypeCount = 0, removeRow = false, jokersCount = 0;
 
       // Count jokers in this column
-      colorsInRow.forEach((color) => {
-        color === jokerColor ? jokersCount++ : null
+      tilesInRow.forEach((type) => {
+        type === greyTile ? jokersCount++ : null
       })
 
       // Remove row ?
-      colors.forEach((color) => {
-        for(const pieceColor of colorsInRow){
-          color === pieceColor && color !== jokerColor ? colorCount++ : null;
+      tilesInRow.forEach((type) => {
+        for(const tileType of tilesInRow){
+          type === tileType && type !== greyTile ? tileTypeCount++ : null;
         }
-        colorCount + jokersCount === numberOfColumns ? removeRow = true : colorCount = 0;
+        tileTypeCount + jokersCount === numberOfColumns ? removeRow = true : tileTypeCount = 0;
       })
       
       if(removeRow){
@@ -284,11 +304,8 @@ function main(){
         pieces = pieces.filter(p => Math.floor(p.y) !== Math.floor(pieces[a].y));
 
         // Add points to total score
-        colorsInRow.forEach((color) => {
-          score += points[colors.indexOf(color)];
-        })
-        
-        
+        score += 1;
+
         /* Important: when pieces are removed all other pieces
           that where above them will move */
         for(const s of pieces){
@@ -300,17 +317,12 @@ function main(){
       }
     }
   }
-
   
+  isGameOver ? null : window.requestAnimationFrame(gameLoop);
       
 }
 
-function randomColor(){
-  let rand = Math.round(Math.random() * (colors.length - 1));
-  return colors[rand];
-}
-
-function gameOver(){
+function showGameOverMsg(){
   alert('Game Over');
   interval = clearInterval(interval);
   startBtn.innerText = "start game";
@@ -398,56 +410,21 @@ function handleKeyUp(e){
   }
 }
 
-function drawPiece(type, posX, posY, color){
-  ctx.beginPath();
-  
-  if(color === jokerColor){
-    ctx.rect(posX, posY, pieceWidth, pieceWidth);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.font= "30px Helvetica";
-    ctx.textAlign = "left";
-    ctx.fillStyle = "black";
-    ctx.fillText("J", posX + 12, posY + pieceWidth - 8);
-  }else{
-    let radius = pieceWidth/2;
-    
-    switch(type){
-      case "square": 
-      ctx.rect(posX, posY, pieceWidth, pieceWidth);
-      ctx.fillStyle = color;
-      ctx.fill();
-      break;
 
-      case "bomb":
-      ctx.arc(posX + radius, posY + radius, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-      break;
-    }
-  }
-  ctx.closePath();
+function drawTile(image, posX, posY){
+    ctx.drawImage(image, posX, posY);
 }
-
-var interval;
 
 startBtn.addEventListener("click", () => {
   if(startBtn.innerText === "start game"){
     if(pieces.length > 0){
       pieces = [];
     }
-    interval = setInterval(main, 10);
+    interval = init();
     startBtn.innerText = "game started";
   }
 });
-pauseBtn.addEventListener("click", () => {
-  if(pauseBtn.innerText === "pause"){ 
-    pauseBtn.innerText = "resume"; 
-    interval = clearInterval(interval);
-  }else{
-    pauseBtn.innerText = "pause";
-    interval = setInterval(main, 10);
-  }
-});
+
+
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
