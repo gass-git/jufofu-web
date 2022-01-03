@@ -1,12 +1,10 @@
-/* Pendings: 
-   - change square type to tile
-*/
 // Interface constants
 const canvas = document.getElementById("root"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("start"),
       ctx = canvas.getContext("2d");
 
+// Pieces 
 const greenTile = new Image(),
       blueTile = new Image(),
       greyTile = new Image(),
@@ -28,11 +26,8 @@ blackCircle.src = "images/blackCircle.png";
 const activeTileTypes = [greenTile, blueTile, greyTile],
       tileTypesToActivate = [orangeTile, pinkTile, redTile, yellowTile];
 
-      /*colors = [jokerColor, greyRockColor, copperColor],
-      colorsToAdd = [silverColor, goldColor, rubyColor], */
-
       // Number of frames required to activate a new tile type
-      framesForActivation = 3000; // 100 equals 1 second
+      framesForActivation = 6000; // 100 equals 1 second
 
 // General game constants      
 const pieceWidth = 40,
@@ -72,42 +67,36 @@ class piece {
   }
 }
 
-function randomTileType(){
-  let rand = Math.round(Math.random() * (activeTileTypes.length - 1));
-  return activeTileTypes[rand];
-}
-
 function init(){
-    
-    // Start the first frame request
-    window.requestAnimationFrame(gameLoop);
+  // Start the first frame request
+  window.requestAnimationFrame(gameLoop);
 }
 
 function gameLoop(){
-  // Count the frames
-  frames++;
-
-  // Create a piece if there are no pieces
-  if(pieces.length === 0){
-    firstPieceCreate = true;
+  // Create a piece at the start of the game
+  if(frames === 0){
     pieces.push(
       new piece("tile", randomTileType())
     ); 
   }
-  
 
-  // When frames reach a certain amount push a new color to the colors array.
-  // Note: this is to make the game harder as it progresses.
-  if(frames === framesForActivation && activeTileTypes.length < 7){
+  // When frames reach a certain amount activate a new tile type
+  let max = 3 + tileTypesToActivate.length;
+  if(frames === framesForActivation && activeTileTypes.length < max){
     activeTileTypes.push(tileTypesToActivate[activeTileTypes.length - 3]);
-    frames = 0;
+    
+    // Reset frames
+    frames = 0; 
   }
 
+  // Count the frames
+  frames++;
+  
   // Create a new piece if the last one is not active.  
   let numberOfPieces = pieces.length,
       lastPiece = pieces[numberOfPieces - 1];
 
-  // If there are more than 5 pieces in the game, bombs have a chance of 30% to be created.        
+  // If there are more than 5 pieces in the game, bombs have a chance of 20% to be created.        
   if(lastPiece.isActive === false && numberOfPieces <= 5){
     pieces.push(new piece("tile", randomTileType())); 
   }
@@ -117,7 +106,7 @@ function gameLoop(){
       isGameOver = true;
       showGameOverMsg();
     }else{
-      Math.random() <= 0.3 ? pieces.push(new piece("bomb", blackCircle)) : pieces.push(new piece("tile", randomTileType()));
+      Math.random() <= 0.2 ? pieces.push(new piece("bomb", blackCircle)) : pieces.push(new piece("tile", randomTileType()));
     }
   }
 
@@ -128,7 +117,7 @@ function gameLoop(){
     
     drawTile(piece.tileType, piece.x, piece.y);
     
-    // Falling effect
+    /* -- Vertical movement -- */
     let col = positions_x_axis.indexOf(piece.x),
         pieceBottomPosY = piece.y + piece.width;
 
@@ -143,119 +132,42 @@ function gameLoop(){
       piece.isActive = false;
     }
 
-    /* 
-      HORIZONTAL MOVEMENT
-    */
-    if(left && piece.isActive){
-       // Does the piece have a column available to the left?
-      if(piece.x !== positions_x_axis[0]){
-        if(isLeftAvailable(piece) && timeOut === false){
-          let i = positions_x_axis.indexOf(piece.x); 
-          piece.x = positions_x_axis[i - 1];
-          timeOut = true;
-          setTimeout(()=>{ timeOut = false },120)
+ 
+    /* -- Horizontal movement -- */
+    if(piece.isActive){
+      if(left){
+        // Does the piece have a column available to the left?
+        if(piece.x !== positions_x_axis[0]){
+          if(isLeftAvailable(piece) && timeOut === false){
+            let i = positions_x_axis.indexOf(piece.x); 
+            piece.x = positions_x_axis[i - 1];
+            timeOut = true;
+            setTimeout(()=>{ timeOut = false },120)
+          }
         }
       }
+      else if(right){
+        // Does the piece have a column available to the right?
+        if(piece.x !== positions_x_axis[positions_x_axis.length - 1]){
+          if(isRightAvailable(piece) && timeOut === false){
+            let i = positions_x_axis.indexOf(piece.x);
+            piece.x = positions_x_axis[i + 1];
+            timeOut = true;
+            setTimeout(()=>{ timeOut = false },120)
+          }
+        }  
+      }
     }
-
-    if(right && piece.isActive){
-      // Does the piece have a column available to the right?
-      if(piece.x !== positions_x_axis[positions_x_axis.length - 1]){
-        if(isRightAvailable(piece) && timeOut === false){
-          let i = positions_x_axis.indexOf(piece.x);
-          piece.x = positions_x_axis[i + 1];
-          timeOut = true;
-          setTimeout(()=>{ timeOut = false },120)
-        }
-      }  
-    }
-
   });
 
+  // Update the last piece variable  
   lastPiece = pieces[pieces.length - 1];
+
+  // Bomb logic
   if(lastPiece.type === "bomb" && lastPiece.isMoving === false){
     let bomb = lastPiece;
 
-    // Remove the left piece if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x - pieceWidth && p.y === bomb.y){
-        return false;
-      }else{
-        return true;
-      }
-    });
-
-    // Remove the right piece if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x + pieceWidth && p.y === bomb.y){
-        return false;
-      }else{
-        return true;
-      }
-    });
-
-     // Remove the bottom piece if exists
-     pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x && p.y === bomb.y + pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    });
-
-    // Remove the top piece if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x && p.y === bomb.y - pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    });
-
-    // Remove the diagonal left-top if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x - pieceWidth && p.y === bomb.y - pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    })
-
-    // Remove the diagonal left-bottom if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x - pieceWidth && p.y === bomb.y + pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    })
-
-    // Remove the diagonal right-top if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x + pieceWidth && p.y === bomb.y - pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    })
-
-    // Remove the diagonal right-bottom if exists
-    pieces = pieces.filter((p) => { 
-      if(p.x === bomb.x + pieceWidth && p.y === bomb.y + pieceWidth){
-        return false;
-      }else{
-        return true;
-      }
-    })
-
-    // Remove the bomb
-    pieces = pieces.filter((p) => { 
-      if(p.type === bomb.type){
-        return false;
-      }else{
-        return true;
-      }
-    })
+    bombExplosion(bomb);
 
     /* Important: when pieces are removed all other pieces
           that where above them will move */
@@ -263,8 +175,8 @@ function gameLoop(){
       s.isMoving = true;
     }
 
-  }else{
-    //let count = 0;
+  } // If the current piece is not a bomb do the following
+  else{ 
     let tilesInRow = [];
     for(let a = 0; a < pieces.length; a++){
       tilesInRow = [];
@@ -273,13 +185,13 @@ function gameLoop(){
         if(pieces[a].isActive === false && pieces[b].isActive === false){
           // Are pieces in the same row?
           if(Math.floor(pieces[a].y) === Math.floor(pieces[b].y)){
-            // If the colorsInRow array is empty add pieces[a]
-            // Note: is important to add this piece only once because it repeats inside this loop
+            // If the tilesInRow array is empty add pieces[a]
+            /* Note: is important to add this piece only once because this
+              line repeats itself inside this loop. */
             if(tilesInRow.length < 1){
               tilesInRow.push(pieces[a].tileType);
             }
             tilesInRow.push(pieces[b].tileType);
-            //count++;
           }
         }
       }
@@ -320,6 +232,42 @@ function gameLoop(){
   
   isGameOver ? null : window.requestAnimationFrame(gameLoop);
       
+}
+
+function randomTileType(){
+  let rand = Math.round(Math.random() * (activeTileTypes.length - 1));
+  return activeTileTypes[rand];
+}
+
+function bombExplosion(bomb){
+  // Remove tiles sorrounding the bomb at moment of impact
+  pieces = pieces.filter((p) => { 
+    let c = [
+      p.x === bomb.x - pieceWidth && p.y === bomb.y,  // Check left
+      p.x === bomb.x + pieceWidth && p.y === bomb.y,  // Check right
+      p.x === bomb.x && p.y === bomb.y + pieceWidth,  // Check below
+      p.x === bomb.x && p.y === bomb.y - pieceWidth,   // Check above
+      p.x === bomb.x - pieceWidth && p.y === bomb.y - pieceWidth, // Check the diagonal left-top
+      p.x === bomb.x - pieceWidth && p.y === bomb.y + pieceWidth, // Check the diagonal left-bottom
+      p.x === bomb.x + pieceWidth && p.y === bomb.y - pieceWidth, // Check the diagonal right-top 
+      p.x === bomb.x + pieceWidth && p.y === bomb.y + pieceWidth, // Check the diagonal right-bottom 
+    ];
+
+    if(c[0] || c[1] ||  c[2] ||  c[3] ||  c[4] ||  c[5] ||  c[6] || c[7]){
+      return false;
+    }else{
+      return true;
+    }
+  });
+
+  // Remove the bomb
+  pieces = pieces.filter((p) => { 
+    if(p.type === bomb.type){
+      return false;
+    }else{
+      return true;
+    }
+  });
 }
 
 function showGameOverMsg(){
