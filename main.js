@@ -91,7 +91,7 @@ function gameLoop(){
   if(pieces.length === 0){
     firstPieceCreate = true;
     pieces.push(
-      new piece("square", randomTileType())
+      new piece("tile", randomTileType())
     ); 
   }
   
@@ -109,7 +109,7 @@ function gameLoop(){
 
   // If there are more than 5 pieces in the game, bombs have a chance of 30% to be created.        
   if(lastPiece.isActive === false && numberOfPieces <= 5){
-    pieces.push(new piece("square", randomTileType())); 
+    pieces.push(new piece("tile", randomTileType())); 
   }
   else if(lastPiece.isActive === false && numberOfPieces > 5){
     // Check if it is game over before creating a new piece.
@@ -117,7 +117,7 @@ function gameLoop(){
       isGameOver = true;
       showGameOverMsg();
     }else{
-      Math.random() <= 0.3 ? pieces.push(new piece("bomb", blackCircle)) : pieces.push(new piece("square", randomTileType()));
+      Math.random() <= 0.3 ? pieces.push(new piece("bomb", blackCircle)) : pieces.push(new piece("tile", randomTileType()));
     }
   }
 
@@ -304,7 +304,7 @@ function gameLoop(){
         pieces = pieces.filter(p => Math.floor(p.y) !== Math.floor(pieces[a].y));
 
         // Add points to total score
-        score += 1;
+        score += numberOfPieces;
 
         /* Important: when pieces are removed all other pieces
           that where above them will move */
@@ -413,7 +413,17 @@ function handleKeyUp(e){
 
 function drawTile(image, posX, posY){
     ctx.drawImage(image, posX, posY);
-}
+    if(image === greyTile){    
+      ctx.font = "24px Helvetica";
+      ctx.fillStyle = "#9A0680";
+      ctx.fillText("J", posX + 14, posY + pieceWidth - 11);
+    }
+    else if(image === blackCircle){    
+      ctx.font = "24px Helvetica";
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText("B", posX + 13, posY + pieceWidth - 11);
+    }
+  }
 
 startBtn.addEventListener("click", () => {
   if(startBtn.innerText === "start game"){
