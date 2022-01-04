@@ -73,12 +73,15 @@ function init(){
 }
 
 function gameLoop(){
-  // Create a piece at the start of the game
-  if(frames === 0){
+  /* Create a new piece at the start of the game or if
+   the pieces array is empty */
+  if(frames === 0 || pieces.length === 0){
     pieces.push(
       new piece("tile", randomTileType())
     ); 
   }
+
+  // Create a new piece if 
 
   // When frames reach a certain amount activate a new tile type
   let max = 3 + tileTypesToActivate.length;
