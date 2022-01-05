@@ -30,6 +30,7 @@ greyBrick.src = "images/longGrey-2.png";
 
 // Pieces arrays
 var pieces = [],
+    numberOfPieces_inRows = [0,0,0,0,0,0,0,0,0,0],
     numberOfColors_init = 2,
     activeBrickColors = ["green", "blue"],
     brickColorsToAdd = ["orange", "pink", "red", "yellow"];
@@ -69,95 +70,13 @@ var score = 0,
     frames = 0, 
     isGameOver = false;
 
-class block {
-  constructor(color){
-    this.type = "block",
-    this.color = color,
-    this.image = getImage(color),
-    this.width = blockWidth,
-    this.height = blockHeight,
-    this.x = positions_x_axis[3],
-    this.y = 0,
-    this.isMoving = true,
-    this.isActive = true,
-    this.column = 4,
-    this.row = 10,
-    this.counted = false
-  }
-}
-
-function getImage(color){
-  switch(color){
-    case "green": return greenBlock;
-    case "blue": return blueBlock;
-    case "orange": return orangeBlock;
-    case "pink": return pinkBlock;
-    case "red": return redBlock;
-    case "yellow": return yellowBlock;
-  }
-}
-
-class joker {
-  constructor(){
-    this.type = "joker",
-    this.color = "grey",
-    this.image = greyBlock,
-    this.width = blockWidth,
-    this.height = blockHeight,
-    this.x = positions_x_axis[3],
-    this.y = 0,
-    this.isMoving = true, 
-    this.isActive = true,
-    this.column = 4,
-    this.row = 10,
-    this.counted = false
-  }
-}
-
-class jokerBrick {
-  constructor(){
-    this.type = "jokerBrick",
-    this.color = "grey",
-    this.image = greyBrick,
-    this.width = blockWidth,
-    this.height = blockHeight * 2,
-    this.x = positions_x_axis[3],
-    this.y = 0,
-    this.isMoving = true, 
-    this.isActive = true,
-    this.column = 4,
-    this.topRow = 10,
-    this.bottomRow = 9,
-    this.countedTopRow = false,
-    this.countedBottomRow = false
-  }
-}
-
-class bomb {
-  constructor(){
-    this.type = "bomb",
-    this.color = "black",
-    this.image = bombImage,
-    this.width = blockWidth,
-    this.height = blockHeight,
-    this.x = positions_x_axis[3],
-    this.y = 0,
-    this.isMoving = true,
-    this.isActive = true,
-    this.column = 4,
-    this.row = 10
-  }
-}
+var rowsDetails = [];
 
 function init(){
   // Start the first frame request
   window.requestAnimationFrame(gameLoop);
 }
-
-var numberOfPieces_inRows = [0,0,0,0,0,0,0,0,0,0];
-
 function gameLoop(){
-
   /**
    * Create a new piece at the start of the game or if
    * the pieces array is empty.
@@ -175,11 +94,7 @@ function gameLoop(){
   let max = numberOfColors_init + brickColorsToAdd.length;  
   
   if(frames === framesForActivation && activeBrickColors.length < max){
-    let toIndex = activeBrickColors.length - numberOfColors_init;
-    
-    activeBrickColors.push(
-      brickColorsToAdd[toIndex]
-    );
+    activateNewColor();
 
     // Reset frames
     frames = 0; 
@@ -190,55 +105,11 @@ function gameLoop(){
 
   /**
    * Create a new piece if the last one is not active.  
+   * 
+   * Note: the function input is the number of pieces that must be in play 
+   * to start creating bombs.
    */
-  let numberOfPieces = pieces.length,
-      lastPiece = pieces[numberOfPieces - 1];
-
-  // If there are more than 10 pieces in the game, bombs can be created.     
-  if(lastPiece.isActive === false && numberOfPieces <= 3){
-    if(Math.random() > 0.2){
-      pieces.push(
-        new block(randomActiveColor())
-      );
-    }
-    else{
-      pieces.push(
-        new joker()
-      );
-    }
-  }
-  else if(lastPiece.isActive === false && numberOfPieces > 3){
-    
-    // Is there an active jokerBrick?
-    let jokerBrickInPlay = false;
-    for(const p of pieces){
-      if(p.type === "jokerBrick"){ 
-        jokerBrickInPlay = true;
-        break;
-      }
-    }
-    
-    // Check if it is game over before creating a new piece.
-    if(lastPiece.y === 0 && lastPiece.isMoving === false){
-      isGameOver = true;
-      showGameOverMsg();
-    }
-    else if(Math.random() <= 0){
-        pieces.push(
-          new bomb()
-        );
-      } // Only one jokerBrick is allowed to be in play
-      else if(Math.random() <= 0.4 && jokerBrickInPlay === false){
-        pieces.push(
-          new jokerBrick()
-        );
-      }
-      else{
-        pieces.push(
-          new block(randomActiveColor())
-        );
-      }
-  }
+  createNewPiece(10);
 
   /**
    * Update score and clear canvas
@@ -246,80 +117,14 @@ function gameLoop(){
   scoreDiv.innerHTML = score;
   ctx.clearRect(0,0,canvas.width, canvas.height);
 
-
   /**
    * Loop through all the pieces in play
    */
   pieces.forEach((piece) => {
-
     drawPieces(piece.type, piece.image, piece.x, piece.y);
-
-    /* -- Vertical movement -- */
-    let col = positions_x_axis.indexOf(piece.x),
-        pieceBottomPosY = piece.y + piece.height;
-
-    if(pieceBottomPosY <= availableHeight(col)){
-      if(down && piece.isActive){
-        if(pieceBottomPosY + speed * boost < availableHeight(col)){
-          piece.y += speed * boost;
-        }
-      }
-      else{
-        piece.y += speed;
-      }
-
-      // Update piece ROW position
-
-      if(piece.type === "jokerBrick"){
-        piece.topRow = getRow(piece.y);
-        piece.bottomRow = getRow(piece.y + blockHeight);
-      }
-      else{
-        piece.row = getRow(piece.y)
-      }
-
-      
-
-    }
-    else{
-      piece.isMoving = false;
-      piece.isActive = false;
-    }
-
-    /* -- Horizontal movement -- */
-    if(piece.isActive){
-      if(left){
-        // Does the piece have a column available to the left?
-        if(piece.x !== positions_x_axis[0]){
-          if(isLeftAvailable(piece) && timeOut === false){
-            let i = positions_x_axis.indexOf(piece.x); 
-            piece.x = positions_x_axis[i - 1];
-            timeOut = true;
-
-            // Update piece COLUMN position
-            piece.column = getColumn(piece.x);
-
-            setTimeout(()=>{ timeOut = false }, 120);
-          }
-        }
-      }
-      else if(right){
-        // Does the piece have a column available to the right?
-        if(piece.x !== positions_x_axis[positions_x_axis.length - 1]){
-          if(isRightAvailable(piece) && timeOut === false){
-            let i = positions_x_axis.indexOf(piece.x);
-            piece.x = positions_x_axis[i + 1];
-
-            // Update piece COLUMN position
-            piece.column = getColumn(piece.x);
-
-            timeOut = true;
-            setTimeout(()=>{ timeOut = false }, 120);
-          }
-        }  
-      }
-    }
-
+    
+    handleVerticalMovement(piece);
+    handleHorizontalMovement(piece);
   });
 
   /**
@@ -327,138 +132,19 @@ function gameLoop(){
    * numberOfPieces_inRows array.
    */
   pieces.forEach((piece) => {
-    
-    /**
-     * If pieces move, update counted boolean property
-     * to false.
-     * 
-     */
-    if(piece.type !== "jokerBrick"){
-      if(piece.isMoving){
-        piece.counted = false;
-      }
-    }
-    else{
-      if(piece.isMoving){
-        piece.countedTopRow = false;
-        piece.countedBottomRow = false;
-      }
-    }
-
-
-    for(let row = 0; row < rows; row++){
-      if(piece.type !== "jokerBrick" && piece.isMoving === false && piece.counted === false){
-        if(piece.row === row){
-          numberOfPieces_inRows[row - 1]++;
-          piece.counted = true;
-        }
-      }
-      else if(piece.isMoving === false){
-        if(piece.topRow === row && piece.countedTopRow === false){
-          numberOfPieces_inRows[row - 1]++;
-          piece.countedTopRow = true;
-        }
-        else if(piece.bottomRow == row && piece.countedBottomRow === false){
-          numberOfPieces_inRows[row - 1]++;
-          piece.countedBottomRow = true;
-        }
-      }
-    }
-
+    handlePiecesInRowCount(piece);
   });
-
-  var rowsDetails = [];
 
   numberOfPieces_inRows.forEach((piecesInRow, index) => {
-    
-    let colorsInRow = [];
-
-    // If the row is full check colors
-    if(piecesInRow === columns){      
-      let rowNumber = index + 1;
-      
-      // Check colors for blocks and jokers
-      for(const p of pieces){
-        if(p.type === "block" || p.type === "joker"){
-          if(p.row === rowNumber){
-            colorsInRow.push(p.color);
-          }
-        }
-      }
-
-      for(const p of pieces){
-        if(p.type === "jokerBrick"){
-          if(p.topRow === rowNumber || p.bottomRow === rowNumber){
-            colorsInRow.push(p.color);
-          }
-        }
-      }
-
-    }
-
-    if(colorsInRow.length === columns){
-      let colorForComparing;
-      let colorForComparingFound = false;
-      let colorsMatch;
-
-      for(const color of colorsInRow){
-        if(color !== "grey"){
-          colorForComparing = color;
-          colorForComparingFound = true;
-        }
-      }
-      
-      for(const color of colorsInRow){
-        if(colorForComparing === color || color === "grey"){
-          colorsMatch = true;
-        }
-        else{
-          colorsMatch = false;
-          break;
-        }
-      } 
-
-      if(colorsMatch){
-
-        let rowNumber = index + 1;
-        let hasJokerBrick;
-
-       // console.log('Colors match in row # ' + rowNumber);
-
-        // Is there a jokerBrick in this row?
-        for(const p of pieces){
-          if(p.type === "jokerBrick"){
-            if(p.bottomRow === rowNumber || p.topRow === rowNumber){
-              hasJokerBrick = true;
-              break;
-            }
-            else{
-              hasJokerBrick = false;
-            }
-          }
-        }
-
-        rowsDetails.push(
-          {
-            number: index + 1,
-            colorsMatch: colorsMatch,
-            hasJokerBrick: hasJokerBrick
-          }
-        );
-
-        
-
-      }
-
-
-    }
-    
-
-
+    buildRowsDetails(piecesInRow, index);
   });
 
-  let jokerBrickMatchedRows = 0;
-  let inRows = [];
+  /**
+   * This section handles the removal of pieces 
+   * and the score.
+   */
+  let jokerBrickMatchedRows = 0,
+      inRows = [];
 
   rowsDetails.forEach((row) => {    
 
@@ -478,15 +164,20 @@ function gameLoop(){
         }
       });
 
+      // Sum up score
+      score += 6;
+
       // Reset numberOfPieces_inRows array
       numberOfPieces_inRows.forEach((el, i) => {
         numberOfPieces_inRows[i] = 0;
       });
-
     }
-
   });
 
+  /**
+   * If there is a joker brick in two matched
+   * colored rows, then remove these rows.
+   */
   if(jokerBrickMatchedRows === 2){
     for(const r of inRows){
       pieces = pieces.filter((p) => {
@@ -504,17 +195,15 @@ function gameLoop(){
       });
     }
 
+    // Sum up score
+    score += 12;
+
     // Reset numberOfPieces_inRows array
     numberOfPieces_inRows.forEach((el, i) => {
       numberOfPieces_inRows[i] = 0;
     });
 
   }
-  
-  /*if(numberOfPieces_inRows[0] !== 0){
-    console.log(numberOfPieces_inRows);
-  }*/
-  
 
   /**
    * Important: when pieces are removed all other pieces
@@ -530,6 +219,317 @@ function gameLoop(){
   isGameOver ? null : window.requestAnimationFrame(gameLoop);  
 }
 
+class block {
+  constructor(color){
+    this.type = "block",
+    this.color = color,
+    this.image = getImage(color),
+    this.width = blockWidth,
+    this.height = blockHeight,
+    this.x = positions_x_axis[3],
+    this.y = 0,
+    this.isMoving = true,
+    this.isActive = true,
+    this.column = 4,
+    this.row = 10,
+    this.counted = false
+  }
+}
+class joker {
+  constructor(){
+    this.type = "joker",
+    this.color = "grey",
+    this.image = greyBlock,
+    this.width = blockWidth,
+    this.height = blockHeight,
+    this.x = positions_x_axis[3],
+    this.y = 0,
+    this.isMoving = true, 
+    this.isActive = true,
+    this.column = 4,
+    this.row = 10,
+    this.counted = false
+  }
+}
+class jokerBrick {
+  constructor(){
+    this.type = "jokerBrick",
+    this.color = "grey",
+    this.image = greyBrick,
+    this.width = blockWidth,
+    this.height = blockHeight * 2,
+    this.x = positions_x_axis[3],
+    this.y = 0,
+    this.isMoving = true, 
+    this.isActive = true,
+    this.column = 4,
+    this.topRow = 10,
+    this.bottomRow = 9,
+    this.countedTopRow = false,
+    this.countedBottomRow = false
+  }
+}
+class bomb {
+  constructor(){
+    this.type = "bomb",
+    this.color = "black",
+    this.image = bombImage,
+    this.width = blockWidth,
+    this.height = blockHeight,
+    this.x = positions_x_axis[3],
+    this.y = 0,
+    this.isMoving = true,
+    this.isActive = true,
+    this.column = 4,
+    this.row = 10
+  }
+}
+function buildRowsDetails(piecesInRow, index){
+  let colorsInRow = [];
+
+  // If the row is full check colors
+  if(piecesInRow === columns){      
+    let rowNumber = index + 1;
+    
+    // Check colors for blocks and jokers
+    for(const p of pieces){
+      if(p.type === "block" || p.type === "joker"){
+        if(p.row === rowNumber){
+          colorsInRow.push(p.color);
+        }
+      }
+    }
+
+    for(const p of pieces){
+      if(p.type === "jokerBrick"){
+        if(p.topRow === rowNumber || p.bottomRow === rowNumber){
+          colorsInRow.push(p.color);
+        }
+      }
+    }
+
+  }
+
+  if(colorsInRow.length === columns){
+    let colorForComparing;
+    let colorForComparingFound = false;
+    let colorsMatch;
+
+    for(const color of colorsInRow){
+      if(color !== "grey"){
+        colorForComparing = color;
+        colorForComparingFound = true;
+      }
+    }
+    
+    for(const color of colorsInRow){
+      if(colorForComparing === color || color === "grey"){
+        colorsMatch = true;
+      }
+      else{
+        colorsMatch = false;
+        break;
+      }
+    } 
+
+    if(colorsMatch){
+      let rowNumber = index + 1,
+          hasJokerBrick;
+
+      // Is there a jokerBrick in this row?
+      for(const p of pieces){
+        if(p.type === "jokerBrick"){
+          if(p.bottomRow === rowNumber || p.topRow === rowNumber){
+            hasJokerBrick = true;
+            break;
+          }
+          else{
+            hasJokerBrick = false;
+          }
+        }
+      }
+
+      rowsDetails.push(
+        {
+          number: index + 1,
+          colorsMatch: colorsMatch,
+          hasJokerBrick: hasJokerBrick
+        }
+      );
+
+    }
+  }
+}
+function handlePiecesInRowCount(piece){
+  /**
+   * If pieces move, update counted boolean property
+   * to false.
+   * 
+   */
+   if(piece.type !== "jokerBrick"){
+    if(piece.isMoving){
+      piece.counted = false;
+    }
+  }
+  else{
+    if(piece.isMoving){
+      piece.countedTopRow = false;
+      piece.countedBottomRow = false;
+    }
+  }
+
+  for(let row = 0; row < rows; row++){
+    if(piece.type !== "jokerBrick" && piece.isMoving === false && piece.counted === false){
+      if(piece.row === row){
+        numberOfPieces_inRows[row - 1]++;
+        piece.counted = true;
+      }
+    }
+    else if(piece.isMoving === false){
+      if(piece.topRow === row && piece.countedTopRow === false){
+        numberOfPieces_inRows[row - 1]++;
+        piece.countedTopRow = true;
+      }
+      else if(piece.bottomRow == row && piece.countedBottomRow === false){
+        numberOfPieces_inRows[row - 1]++;
+        piece.countedBottomRow = true;
+      }
+    }
+  }
+}
+function handleVerticalMovement(piece){
+  let col = positions_x_axis.indexOf(piece.x),
+        pieceBottomPosY = piece.y + piece.height;
+
+    if(pieceBottomPosY <= availableHeight(col)){
+      if(down && piece.isActive){
+        if(pieceBottomPosY + speed * boost < availableHeight(col)){
+          piece.y += speed * boost;
+        }
+        else{
+          piece.y += speed;
+        }
+      }
+      else{
+        piece.y += speed;
+      }
+
+      // Update piece ROW position
+      if(piece.type === "jokerBrick"){
+        piece.topRow = getRow(piece.y);
+        piece.bottomRow = getRow(piece.y + blockHeight);
+      }
+      else{
+        piece.row = getRow(piece.y)
+      }
+    }
+    else{
+      piece.isMoving = false;
+      piece.isActive = false;
+    }
+}
+function handleHorizontalMovement(piece){
+  if(piece.isActive){
+    if(left){
+      // Does the piece have a column available to the left?
+      if(piece.x !== positions_x_axis[0]){
+        if(isLeftAvailable(piece) && timeOut === false){
+          let i = positions_x_axis.indexOf(piece.x); 
+          piece.x = positions_x_axis[i - 1];
+          timeOut = true;
+
+          // Update piece COLUMN position
+          piece.column = getColumn(piece.x);
+
+          setTimeout(()=>{ timeOut = false }, 120);
+        }
+      }
+    }
+    else if(right){
+      // Does the piece have a column available to the right?
+      if(piece.x !== positions_x_axis[positions_x_axis.length - 1]){
+        if(isRightAvailable(piece) && timeOut === false){
+          let i = positions_x_axis.indexOf(piece.x);
+          piece.x = positions_x_axis[i + 1];
+
+          // Update piece COLUMN position
+          piece.column = getColumn(piece.x);
+
+          timeOut = true;
+          setTimeout(()=>{ timeOut = false }, 120);
+        }
+      }  
+    }
+  }
+}
+function createNewPiece(N){
+  let numberOfPieces = pieces.length,
+      lastPiece = pieces[numberOfPieces - 1];
+
+  // Check if it is game over before creating a new piece.
+  if(lastPiece.y < 40 && lastPiece.isMoving === false){
+    isGameOver = true;
+    showGameOverMsg();
+  }
+
+  // If there are more than N pieces in the game, bombs can be created.     
+  if(lastPiece.isActive === false && numberOfPieces <= N){
+    if(Math.random() > 0.2){
+      pieces.push(
+        new block(randomActiveColor())
+      );
+    }
+    else{
+      pieces.push(
+        new joker()
+      );
+    }
+  }
+  else if(lastPiece.isActive === false && numberOfPieces > N){
+    
+    // Is there an active jokerBrick?
+    let jokerBrickInPlay = false;
+    for(const p of pieces){
+      if(p.type === "jokerBrick"){ 
+        jokerBrickInPlay = true;
+        break;
+      }
+    }
+    
+    if(Math.random() <= 0){
+        pieces.push(
+          new bomb()
+        );
+      } // Only one jokerBrick is allowed to be in play
+      else if(Math.random() <= 0.4 && jokerBrickInPlay === false){
+        pieces.push(
+          new jokerBrick()
+        );
+      }
+      else{
+        pieces.push(
+          new block(randomActiveColor())
+        );
+      }
+  }
+}
+function activateNewColor(){
+  let toIndex = activeBrickColors.length - numberOfColors_init;
+    
+    activeBrickColors.push(
+      brickColorsToAdd[toIndex]
+    );
+}
+function getImage(color){
+  switch(color){
+    case "green": return greenBlock;
+    case "blue": return blueBlock;
+    case "orange": return orangeBlock;
+    case "pink": return pinkBlock;
+    case "red": return redBlock;
+    case "yellow": return yellowBlock;
+  }
+}
 function getColumn(positionX){
 
   switch(positionX){
@@ -542,7 +542,6 @@ function getColumn(positionX){
   }
 
 }
-
 function getRow(positionY){
     
   if(0 <= positionY && positionY <= 40){
@@ -567,7 +566,6 @@ function getRow(positionY){
     return 1;
   }
 }
-
 function availableHeight(col){
   let occupied = 0;
   // Sum up the pixels been occupied on a column
@@ -580,7 +578,6 @@ function availableHeight(col){
   });
   return (canvas.height - occupied);
 }
-
 function isRightAvailable(movingPiece){
   let heightOccupied = 0,
       rightCol = positions_x_axis.indexOf(movingPiece.x) + 1;
@@ -602,7 +599,6 @@ function isRightAvailable(movingPiece){
     return false;
   }
 }
-
 function isLeftAvailable(movingPiece){
   let heightOccupied = 0,
       leftCol = positions_x_axis.indexOf(movingPiece.x) - 1;
@@ -624,13 +620,11 @@ function isLeftAvailable(movingPiece){
     return false;
   }
 }
-
 function showGameOverMsg(){
   alert('Game Over');
   interval = clearInterval(interval);
   startBtn.innerText = "start game";
 }
-
 function drawPieces(type, image, posX, posY){
   ctx.drawImage(image, posX, posY);
 
@@ -645,7 +639,6 @@ function drawPieces(type, image, posX, posY){
       ctx.fillText("J", posX + 14, posY + blockWidth - 11);
     }
 }
-
 function handleKeyDown(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
     right = true;
