@@ -171,6 +171,15 @@ function gameLoop(){
       numberOfPieces_inRows.forEach((el, i) => {
         numberOfPieces_inRows[i] = 0;
       });
+
+      /**
+       * Important: when pieces are removed all other pieces
+       * that where above them will move 
+       */ 
+      for(const p of pieces){
+        p.isMoving = true;
+      }
+
     }
   });
 
@@ -203,14 +212,14 @@ function gameLoop(){
       numberOfPieces_inRows[i] = 0;
     });
 
-  }
+    /**
+     * Important: when pieces are removed all other pieces
+     * that where above them will move 
+     */ 
+    for(const s of pieces){
+        s.isMoving = true;
+    }
 
-  /**
-   * Important: when pieces are removed all other pieces
-   * that where above them will move 
-   */ 
-   for(const s of pieces){
-    s.isMoving = true;
   }
 
   // Reset rowsDetails
@@ -467,7 +476,8 @@ function createNewPiece(N){
       lastPiece = pieces[numberOfPieces - 1];
 
   // Check if it is game over before creating a new piece.
-  if(lastPiece.y < 40 && lastPiece.isMoving === false){
+  if(lastPiece.y < blockHeight && lastPiece.isMoving === false){
+    console.log(lastPiece.y)
     isGameOver = true;
     showGameOverMsg();
   }
