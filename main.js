@@ -109,7 +109,7 @@ function gameLoop(){
    * Note: the function input is the number of pieces that must be in play 
    * to start creating bombs.
    */
-  createNewPiece(10);
+  createNewPiece(3);
 
   /**
    * Update score and clear canvas
@@ -125,6 +125,23 @@ function gameLoop(){
     
     handleVerticalMovement(piece);
     handleHorizontalMovement(piece);
+
+    // Bomb logic
+    let lastPiece = pieces[pieces.length - 1];
+
+    if(lastPiece.type === "bomb" && lastPiece.isMoving === false){
+      let bomb = lastPiece;
+
+      bombExplosion(bomb);
+
+      /* Important: when pieces are removed all other pieces
+            that where above them will move */
+      for(const s of pieces){
+        s.isMoving = true;
+      }
+
+    }
+
   });
 
   /**
@@ -245,16 +262,16 @@ class block {
   }
 }
 class joker {
-  constructor(){
+  constructor(x, y, state){
     this.type = "joker",
     this.color = "grey",
     this.image = greyBlock,
     this.width = blockWidth,
     this.height = blockHeight,
-    this.x = positions_x_axis[3],
-    this.y = 0,
+    this.x = x,
+    this.y = y,
     this.isMoving = true, 
-    this.isActive = true,
+    this.isActive = state,
     this.column = 4,
     this.row = 10,
     this.counted = false
@@ -291,6 +308,212 @@ class bomb {
     this.isActive = true,
     this.column = 4,
     this.row = 10
+  }
+}
+function bombExplosion(bomb){
+  
+  let brickAboveBomb = false, 
+      brickUnderBomb = false, 
+      brickToLeftOfBomb = false,
+      brickToRightOfBomb = false;
+  
+  /**
+   * Remove pieces sorrounding the bomb at moment of impact.
+   *  
+   */ 
+
+  // Conditions for blocks and for some joker bricks cases
+  pieces = pieces.filter((p) => { 
+    let c = [
+      p.x === bomb.x - blockWidth && p.y === bomb.y,                  // Check left (for block or first half of joker brick)
+      p.x === bomb.x + blockWidth && p.y === bomb.y,                  // Check right (for block or first hald of joker brick)
+      p.x === bomb.x && p.y === bomb.y + blockWidth,                  // Check below (for block and joker brick)
+      p.x === bomb.x && p.y === bomb.y - blockWidth,                  // Check above (for block)
+      p.x === bomb.x - blockWidth && p.y === bomb.y - blockWidth,     // Check the diagonal left-top (for block)
+      p.x === bomb.x - blockWidth && p.y === bomb.y + blockWidth,     // Check the diagonal left-bottom (for block and joker brick)
+      p.x === bomb.x + blockWidth && p.y === bomb.y - blockWidth,     // Check the diagonal right-top (for block) 
+      p.x === bomb.x + blockWidth && p.y === bomb.y + blockWidth,     // Check the diagonal right-bottom (for block and joker brick)
+    ];
+
+    // Conditions only for joker bricks
+    let c2 = [
+      p.x === bomb.x - blockWidth && p.y === bomb.y + blockHeight,    // Check left (for second half of joker brick)
+      p.x === bomb.x + blockWidth && p.y === bomb.y + blockHeight,    // Check right (for second half of joker brick)
+      p.x === bomb.x && p.y === bomb.y - 2 * blockWidth,              // Check above (for joker block)
+      p.x === bomb.x - blockWidth && p.y === bomb.y - 2 * blockWidth,  // Check the diagonal left-top (for joker brick)
+      p.x === bomb.x + blockWidth && p.y === bomb.y - 2 * blockWidth  // Check the diagonal right-top (for joker brick)
+    ]
+
+    if(c[0] || c[1] ||  c[2] ||  c[3] ||  c[4] ||  c[5] ||  c[6] || c[7]){
+ 
+      if(p.type === "jokerBrick"){
+
+        // Is there a brick below?
+        if(p.y > bomb.y){
+          brickUnderBomb = true;
+          console.log('There is a brick below the bomb')
+        }
+
+        // Is there a brick to the left?
+        if(p.x < bomb.x){
+          brickFirstHalf_toLeftOfBomb = true;
+          console.log('There is a brick to the left of the bomb');
+        }
+
+        // Is there a brick to the right?
+        if(p.x > bomb.x){
+          brickFirstHalf_toRightOfBomb = true;
+          console.log('There is a brick to the right of the bomb');
+        }
+      }
+
+      return false; // Remove piece
+    }
+
+    if(c2[0] || c2[1] || c2[2] || c2[3] || c2[4]){
+
+      // Is there a brick above?
+      if(p.y < bomb.y){
+        brickAboveBomb = true;
+        console.log('There is a brick above the bomb')
+      }
+
+      // Is there a brick to the left?
+      if(p.x < bomb.x){
+        brickToLeftOfBomb = true;
+        console.log('There is a brick to the left of the bomb');
+      }
+
+      // Is there a brick to the right?
+      if(p.x > bomb.x){
+        brickToRightOfBomb = true;
+        console.log('There is a brick to the right of the bomb');
+      }
+
+      return false; // remove piece
+    }
+
+    else{
+      return true;
+    }
+  });
+
+  /**
+   * Transform the brick to a block joker
+   */
+   if(brickAboveBomb){
+    
+    if(brickToLeftOfBomb){
+      let isActive = false,
+          x = bomb.x - blockWidth,
+          y = bomb.y - blockHeight * 2;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );
+    }
+    else if(brickToRightOfBomb){
+      let isActive = false,
+          x = bomb.x + blockWidth,
+          y = bomb.y - blockHeight * 2;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );
+    } 
+    else{
+      let isActive = false,
+          x = bomb.x,
+          y = bomb.y - blockHeight * 2;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );  
+    }    
+
+  } 
+
+  
+
+  
+
+  if(brickUnderBomb){
+
+    if(brickToLeftOfBomb){
+      let isActive = false,
+          x = bomb.x - blockWidth,
+          y = bomb.y + blockHeight;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );
+    } 
+    else if(brickToRightOfBomb){
+      let isActive = false,
+          x = bomb.x + blockWidth,
+          y = bomb.y + blockHeight;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );
+    } 
+    else{ 
+      let isActive = false,
+          x = bomb.x,
+          y = bomb.y + 2 * blockHeight;
+          
+      pieces.push(
+        new joker(x, y, isActive)
+      );
+    }
+  } 
+
+
+  // Remove the bomb
+  pieces = pieces.filter((p) => { 
+    if(p.type === bomb.type){
+      return false;
+    }else{
+      return true;
+    }
+  });
+}
+
+function handlePiecesInRowCount(piece){
+  /**
+   * If pieces move, update counted boolean property
+   * to false.
+   * 
+   */
+    if(piece.type !== "jokerBrick"){
+    if(piece.isMoving){
+      piece.counted = false;
+    }
+  }
+  else{
+    if(piece.isMoving){
+      piece.countedTopRow = false;
+      piece.countedBottomRow = false;
+    }
+  }
+
+  for(let row = 0; row < rows; row++){
+    if(piece.type !== "jokerBrick" && piece.isMoving === false && piece.counted === false){
+      if(piece.row === row){
+        numberOfPieces_inRows[row - 1]++;
+        piece.counted = true;
+      }
+    }
+    else if(piece.isMoving === false){
+      if(piece.topRow === row && piece.countedTopRow === false){
+        numberOfPieces_inRows[row - 1]++;
+        piece.countedTopRow = true;
+      }
+      else if(piece.bottomRow == row && piece.countedBottomRow === false){
+        numberOfPieces_inRows[row - 1]++;
+        piece.countedBottomRow = true;
+      }
+    }
   }
 }
 function buildRowsDetails(piecesInRow, index){
@@ -366,43 +589,6 @@ function buildRowsDetails(piecesInRow, index){
         }
       );
 
-    }
-  }
-}
-function handlePiecesInRowCount(piece){
-  /**
-   * If pieces move, update counted boolean property
-   * to false.
-   * 
-   */
-   if(piece.type !== "jokerBrick"){
-    if(piece.isMoving){
-      piece.counted = false;
-    }
-  }
-  else{
-    if(piece.isMoving){
-      piece.countedTopRow = false;
-      piece.countedBottomRow = false;
-    }
-  }
-
-  for(let row = 0; row < rows; row++){
-    if(piece.type !== "jokerBrick" && piece.isMoving === false && piece.counted === false){
-      if(piece.row === row){
-        numberOfPieces_inRows[row - 1]++;
-        piece.counted = true;
-      }
-    }
-    else if(piece.isMoving === false){
-      if(piece.topRow === row && piece.countedTopRow === false){
-        numberOfPieces_inRows[row - 1]++;
-        piece.countedTopRow = true;
-      }
-      else if(piece.bottomRow == row && piece.countedBottomRow === false){
-        numberOfPieces_inRows[row - 1]++;
-        piece.countedBottomRow = true;
-      }
     }
   }
 }
@@ -491,7 +677,7 @@ function createNewPiece(N){
     }
     else{
       pieces.push(
-        new joker()
+        new joker(positions_x_axis[3], 0, true)
       );
     }
   }
@@ -506,12 +692,12 @@ function createNewPiece(N){
       }
     }
     
-    if(Math.random() <= 0){
+    if(Math.random() <= 0.3){
         pieces.push(
           new bomb()
         );
       } // Only one jokerBrick is allowed to be in play
-      else if(Math.random() <= 0.4 && jokerBrickInPlay === false){
+      else if(Math.random() <= 0.8 && jokerBrickInPlay === false){
         pieces.push(
           new jokerBrick()
         );
