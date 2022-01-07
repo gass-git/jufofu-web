@@ -351,19 +351,19 @@ function bombExplosion(bomb){
         // Is there a brick below?
         if(p.y > bomb.y){
           brickUnderBomb = true;
-          console.log('There is a brick below the bomb')
+          //console.log('There is a brick below the bomb')
         }
 
         // Is there a brick to the left?
         if(p.x < bomb.x){
           brickFirstHalf_toLeftOfBomb = true;
-          console.log('There is a brick to the left of the bomb');
+          //console.log('There is a brick to the left of the bomb');
         }
 
         // Is there a brick to the right?
         if(p.x > bomb.x){
           brickFirstHalf_toRightOfBomb = true;
-          console.log('There is a brick to the right of the bomb');
+          // console.log('There is a brick to the right of the bomb');
         }
       }
 
@@ -375,19 +375,19 @@ function bombExplosion(bomb){
       // Is there a brick above?
       if(p.y < bomb.y){
         brickAboveBomb = true;
-        console.log('There is a brick above the bomb')
+        // console.log('There is a brick above the bomb')
       }
 
       // Is there a brick to the left?
       if(p.x < bomb.x){
         brickToLeftOfBomb = true;
-        console.log('There is a brick to the left of the bomb');
+        // console.log('There is a brick to the left of the bomb');
       }
 
       // Is there a brick to the right?
       if(p.x > bomb.x){
         brickToRightOfBomb = true;
-        console.log('There is a brick to the right of the bomb');
+        // console.log('There is a brick to the right of the bomb');
       }
 
       return false; // remove piece
@@ -433,10 +433,6 @@ function bombExplosion(bomb){
 
   } 
 
-  
-
-  
-
   if(brickUnderBomb){
 
     if(brickToLeftOfBomb){
@@ -478,7 +474,6 @@ function bombExplosion(bomb){
     }
   });
 }
-
 function handlePiecesInRowCount(piece){
   /**
    * If pieces move, update counted boolean property
@@ -784,7 +779,7 @@ function isRightAvailable(movingPiece){
    */
   pieces.forEach((p) => {
     if(p.x === positions_x_axis[rightCol] && p.isActive === false){
-      heightOccupied += p.width;
+      heightOccupied += p.height;
     }
   });
 
@@ -805,7 +800,7 @@ function isLeftAvailable(movingPiece){
    */     
   pieces.forEach((p) => {
     if(p.x === positions_x_axis[leftCol] && p.isActive === false){
-      heightOccupied += p.width;
+      heightOccupied += p.height;
     }
   });
 
