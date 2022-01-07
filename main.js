@@ -109,7 +109,7 @@ function gameLoop(){
    * Note: the function input is the number of pieces that must be in play 
    * to start creating bombs.
    */
-  createNewPiece(3);
+  createNewPiece(10);
 
   /**
    * Update score and clear canvas
@@ -125,6 +125,12 @@ function gameLoop(){
     
     handleVerticalMovement(piece);
     handleHorizontalMovement(piece);
+
+    /**
+     * The following function repositions the piece on the
+     * Y axis in case are not well positioned.
+     */
+    fixVerticalPosition(piece);
 
     // Bomb logic
     let lastPiece = pieces[pieces.length - 1];
@@ -155,6 +161,12 @@ function gameLoop(){
   numberOfPieces_inRows.forEach((piecesInRow, index) => {
     buildRowsDetails(piecesInRow, index);
   });
+  
+  
+  
+    // console.log(numberOfPieces_inRows);
+  
+
 
   /**
    * This section handles the removal of pieces 
@@ -310,6 +322,16 @@ class bomb {
     this.row = 10
   }
 }
+function fixVerticalPosition(piece){
+  const positionsY = [1, 41, 81, 121, 161, 201, 241, 281, 321, 361];
+
+    if(piece.isMoving === false){
+      for(const y of positionsY){
+        if(piece.y > y && piece.y < y + 10){ piece.y = y }
+      }
+    }
+}
+
 function bombExplosion(bomb){
   
   let brickAboveBomb = false, 
@@ -398,10 +420,12 @@ function bombExplosion(bomb){
     }
   });
 
+  
+
   /**
    * Transform the brick to a block joker
    */
-   if(brickAboveBomb){
+  if(brickAboveBomb){
     
     if(brickToLeftOfBomb){
       let isActive = false,
@@ -462,8 +486,18 @@ function bombExplosion(bomb){
         new joker(x, y, isActive)
       );
     }
+
+    /**
+     * Important: when this joker piece is created, it
+     * does not move, by consequence the row is not updated,
+     * so it's necessary to do it once the piece comes alive.
+     */
+    let lastPiece = pieces[pieces.length - 1];
+    lastPiece.row = getRow(lastPiece.y);  
+
   } 
 
+  
 
   // Remove the bomb
   pieces = pieces.filter((p) => { 
@@ -473,6 +507,10 @@ function bombExplosion(bomb){
       return true;
     }
   });
+
+  // Reset the number of pieces in rows array
+  numberOfPieces_inRows = [0,0,0,0,0,0,0,0,0,0];
+
 }
 function handlePiecesInRowCount(piece){
   /**
@@ -481,16 +519,16 @@ function handlePiecesInRowCount(piece){
    * 
    */
     if(piece.type !== "jokerBrick"){
-    if(piece.isMoving){
-      piece.counted = false;
+      if(piece.isMoving){
+        piece.counted = false;
+      }
     }
-  }
-  else{
-    if(piece.isMoving){
-      piece.countedTopRow = false;
-      piece.countedBottomRow = false;
+    else{
+      if(piece.isMoving){
+        piece.countedTopRow = false;
+        piece.countedBottomRow = false;
+      }
     }
-  }
 
   for(let row = 0; row < rows; row++){
     if(piece.type !== "jokerBrick" && piece.isMoving === false && piece.counted === false){
@@ -610,7 +648,7 @@ function handleVerticalMovement(piece){
         piece.bottomRow = getRow(piece.y + blockHeight);
       }
       else{
-        piece.row = getRow(piece.y)
+        piece.row = getRow(piece.y);
       }
     }
     else{
@@ -687,12 +725,12 @@ function createNewPiece(N){
       }
     }
     
-    if(Math.random() <= 0.3){
+    if(Math.random() <= 0.2){
         pieces.push(
           new bomb()
         );
       } // Only one jokerBrick is allowed to be in play
-      else if(Math.random() <= 0.8 && jokerBrickInPlay === false){
+      else if(Math.random() <= 0.4 && jokerBrickInPlay === false){
         pieces.push(
           new jokerBrick()
         );
