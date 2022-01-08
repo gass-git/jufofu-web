@@ -1,5 +1,5 @@
 // Interface constants
-const canvas = document.getElementById("root"),
+const canvas = document.getElementById("canvas"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("start"),
       ctx = canvas.getContext("2d");

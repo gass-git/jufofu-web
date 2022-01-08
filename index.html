@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="styles.css">
     <script src="main.js" defer></script>
   </head>
   <body>
-    <div id="score" style="margin:5px; font-size:25px;"></div>
-    <!-- IMPORTANT: width and height must be multiples of 2 -->
-    <canvas id="root" width="240" height="400" style="border:1px solid gray"></canvas>    
-    <button id="start">start game</button>
+    <div id="score">0</div>
+    <div class="canvas-wrapper">
+      <!-- IMPORTANT: width and height must be multiples of 2 -->
+      <canvas id="canvas" width="240" height="400"></canvas>    
+      <button id="start">start game</button>
+    </div>
   </body>
 </html>
 
