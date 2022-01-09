@@ -1,7 +1,7 @@
 // Interface constants
 const canvas = document.getElementById("canvas"),
       scoreDiv = document.getElementById("score"),
-      startBtn = document.getElementById("start"),
+      startBtn = document.getElementById("startBtn"),
       ctx = canvas.getContext("2d");
 
 // Block pieces images
@@ -194,7 +194,7 @@ function gameLoop(){
       });
 
       // Sum up score
-      score += 6;
+      score += 60;
 
       // Reset numberOfPieces_inRows array
       numberOfPieces_inRows.forEach((el, i) => {
@@ -334,6 +334,8 @@ function fixVerticalPosition(piece){
 
 function bombExplosion(bomb){
   
+  let piecesDestroyed = 0;
+
   let brickAboveBomb = false, 
       brickUnderBomb = false, 
       brickToLeftOfBomb = false,
@@ -388,7 +390,8 @@ function bombExplosion(bomb){
           // console.log('There is a brick to the right of the bomb');
         }
       }
-
+      
+      piecesDestroyed++; // Count to sum up the score
       return false; // Remove piece
     }
 
@@ -412,7 +415,8 @@ function bombExplosion(bomb){
         // console.log('There is a brick to the right of the bomb');
       }
 
-      return false; // remove piece
+      piecesDestroyed++; // Count to sum up the score
+      return false; // Remove piece
     }
 
     else{
@@ -420,7 +424,12 @@ function bombExplosion(bomb){
     }
   });
 
-  
+  console.log(piecesDestroyed)
+
+  /**
+   * Update score
+   */
+  score += piecesDestroyed;
 
   /**
    * Transform the brick to a block joker
