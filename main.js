@@ -15,7 +15,7 @@ const greenBlock = new Image(),
       
 greenBlock.src = "images/greenTile.png";
 blueBlock.src = "images/blueTile.png";
-greyBlock.src = "images/greyTile.png";
+greyBlock.src = "images/greyTile-transparent.png";
 orangeBlock.src = "images/orangeTile.png";
 pinkBlock.src = "images/pinkTile.png";
 redBlock.src = "images/redTile.png";
@@ -26,7 +26,7 @@ const bombImage = new Image(),
       greyBrick = new Image();  
       
 bombImage.src = "images/blackCircle.png";
-greyBrick.src = "images/longGrey-2.png";
+greyBrick.src = "images/longGrey-2-transparent.png";
 
 // Pieces arrays
 var pieces = [],
@@ -861,11 +861,6 @@ function drawPieces(type, image, posX, posY){
       ctx.font = "24px Helvetica";
       ctx.fillStyle = "#FFFFFF";
       ctx.fillText("B", posX + 13, posY + blockWidth - 11);
-    }
-    else if(type === "joker" || type === "jokerBrick"){
-      ctx.font = "24px Helvetica";
-      ctx.fillStyle = "#9A0680";
-      ctx.fillText("J", posX + 14, posY + blockWidth - 11);
     }
 }
 function handleKeyDown(e){
