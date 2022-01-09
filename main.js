@@ -378,13 +378,13 @@ function bombExplosion(bomb){
 
         // Is there a brick to the left?
         if(p.x < bomb.x){
-          brickFirstHalf_toLeftOfBomb = true;
+          brickToLeftOfBomb = true;
           //console.log('There is a brick to the left of the bomb');
         }
 
         // Is there a brick to the right?
         if(p.x > bomb.x){
-          brickFirstHalf_toRightOfBomb = true;
+          brickToRightOfBomb = true;
           // console.log('There is a brick to the right of the bomb');
         }
       }
@@ -462,7 +462,7 @@ function bombExplosion(bomb){
     if(brickToLeftOfBomb){
       let isActive = false,
           x = bomb.x - blockWidth,
-          y = bomb.y + blockHeight;
+          y = bomb.y + 2 * blockHeight;
           
       pieces.push(
         new joker(x, y, isActive)
@@ -471,7 +471,7 @@ function bombExplosion(bomb){
     else if(brickToRightOfBomb){
       let isActive = false,
           x = bomb.x + blockWidth,
-          y = bomb.y + blockHeight;
+          y = bomb.y + 2 * blockHeight;
           
       pieces.push(
         new joker(x, y, isActive)
