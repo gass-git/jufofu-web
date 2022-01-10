@@ -706,7 +706,6 @@ function createNewPiece(N){
 
   // Check if it is game over before creating a new piece.
   if(lastPiece.y < blockHeight && lastPiece.isMoving === false){
-    console.log(lastPiece.y)
     isGameOver = true;
     showGameOverMsg();
   }
@@ -860,7 +859,7 @@ function isLeftAvailable(movingPiece){
   }
 }
 function showGameOverMsg(){
-  alert('Game Over\nScore: ' + score);
+  alert('Game Over');
 }
 function drawPieces(type, image, posX, posY){
   ctx.drawImage(image, posX, posY);
