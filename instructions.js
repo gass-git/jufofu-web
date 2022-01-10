@@ -18,7 +18,7 @@ instructionsBtn.addEventListener('click', () => {
 
   } 
   else{
-    alert("You cannot see the instructions during a game. In case you'd like to do so, reload the browser.");
+    alert("You cannot read the instructions during a game. In case you'd like to do so, reload the browser.");
   }
 
 
