@@ -860,7 +860,7 @@ function isLeftAvailable(movingPiece){
   }
 }
 function showGameOverMsg(){
-  alert('Game Over');
+  alert('Game Over\nScore: ' + score);
 }
 function drawPieces(type, image, posX, posY){
   ctx.drawImage(image, posX, posY);
