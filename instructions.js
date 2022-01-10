@@ -13,10 +13,15 @@ instructionsBtn.addEventListener('click', () => {
     }
     else{
       instructions.style.display = 'block';
-      instructionsBtn.innerText = 'hide instructions'
+      instructionsBtn.innerText = 'hide instructions';
     }
 
   } 
+  else{
+    alert("You cannot see the instructions during a game. In case you'd like to do so, reload the browser.");
+  }
+
+
 });
 
 /**

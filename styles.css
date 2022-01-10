@@ -79,3 +79,8 @@ footer a:hover {
 #instructions p {
   margin-bottom: 8px;
 }
+@media (min-height: 0px) and (max-height: 730px) {
+  footer {
+    display: none !important;
+  }
+}
