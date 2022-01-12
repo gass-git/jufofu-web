@@ -1,6 +1,6 @@
 const instructionsBtn = document.getElementById('instructionsBtn'),
-      instructions = document.getElementById('instructions');
-     /* startBtn = document.getElementById('startBtn');*/
+      instructions = document.getElementById('instructions'),
+      tooltip = document.getElementById('tooltip');
 
 instructionsBtn.addEventListener('click', () => {
 
@@ -9,25 +9,27 @@ instructionsBtn.addEventListener('click', () => {
 
     if(instructions.style.display === 'block'){
       instructions.style.display = 'none';
-      instructionsBtn.innerText = 'show instructions'
+      instructionsBtn.innerText = 'show instructions';
     }
     else{
       instructions.style.display = 'block';
       instructionsBtn.innerText = 'hide instructions';
     }
 
-  } 
-  else{
-    alert("You cannot read the instructions during a game. In case you'd like to do so, reload the browser.");
-  }
+  }  
+  else if (tooltip.style.display === "none") {
+      tooltip.style.display = "block";
 
+      setTimeout(() => {
+        tooltip.style.display = "none";
+      },5000)
 
-});
+    }
+})
 
 /**
  * If the user clicks on start game and the instructions
  * are displayed, hide them.
- *   
  */ 
 startBtn.addEventListener('click', () => {
   
@@ -36,4 +38,4 @@ startBtn.addEventListener('click', () => {
     instructionsBtn.innerText = 'show instructions';
   }
   
-});
+})

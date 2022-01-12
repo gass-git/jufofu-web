@@ -84,3 +84,15 @@ footer a:hover {
     display: none !important;
   }
 }
+.tooltiptext {
+  width: 200px;
+  background-color: rgb(0, 0, 0, 0.4);
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  top: 550px;
+  left: 50px;
+}
