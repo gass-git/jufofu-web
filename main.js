@@ -32,10 +32,10 @@ greyBrick.src = "images/longGrey-2-transparent.png";
 var pieces = [],
     numberOfPieces_inRows = [0,0,0,0,0,0,0,0,0,0],
     numberOfColors_init = 2,
-    activeBrickColors = ["green", "blue"],
-    brickColorsToAdd = ["orange", "pink", "red", "yellow"];
+    activeBrickColors = ["green", "blue", "yellow"],
+    brickColorsToAdd = ["orange", "pink"];
 
-const framesForActivation = 6000; // 100 equals 1 second
+const framesForActivation = 8000; // 100 equals 1 second
 
 function randomActiveColor(){
   let delta = activeBrickColors.length - 1,
@@ -109,7 +109,7 @@ function gameLoop(){
    * Note: the function input is the number of pieces that must be in play 
    * to start creating bombs.
    */
-  createNewPiece(10);
+  createNewPiece(8);
 
   /**
    * Update score and clear canvas
@@ -638,6 +638,14 @@ function handleVerticalMovement(piece){
   let col = positions_x_axis.indexOf(piece.x),
         pieceBottomPosY = piece.y + piece.height;
 
+    /**
+     * To prevent the overlap when a piece is not active 
+     * and is moving. The speed should match the max vertical speed
+     * of the active piece. That's why pieces that are inactive
+     * and change positions due to pieces below theme been 
+     * removed, fall at the boost speed.
+     * 
+     */
     if(pieceBottomPosY <= availableHeight(col)){
       if(down && piece.isActive){
         if(pieceBottomPosY + speed * boost < availableHeight(col)){
@@ -647,8 +655,11 @@ function handleVerticalMovement(piece){
           piece.y += speed;
         }
       }
-      else{
+      else if(piece.isActive){
         piece.y += speed;
+      }
+      else{
+        piece.y += speed * boost;
       }
 
       // Update piece ROW position
@@ -710,9 +721,18 @@ function createNewPiece(N){
     showGameOverMsg();
   }
 
-  // If there are more than N pieces in the game, bombs can be created.     
-  if(lastPiece.isActive === false && numberOfPieces <= N){
-    if(Math.random() > 0.2){
+  /**
+   * If the number of pieces at play are infirior than N
+   * only blocks and jokers will be created. 
+   * 
+   * If the number of pieces at play are more than N
+   * all type of pieces can be created: blocks, jokers, brickJokers and
+   * bombs.
+   * 
+   * Only one joker brick is allowed to be at play.
+   */
+  if(lastPiece.isActive === false && numberOfPieces < N){
+    if(Math.random() > 0.15){
       pieces.push(
         new block(randomActiveColor())
       );
@@ -723,7 +743,7 @@ function createNewPiece(N){
       );
     }
   }
-  else if(lastPiece.isActive === false && numberOfPieces > N){
+  else if(lastPiece.isActive === false && numberOfPieces >= N){
     
     // Is there an active jokerBrick?
     let jokerBrickInPlay = false;
@@ -734,12 +754,12 @@ function createNewPiece(N){
       }
     }
     
-    if(Math.random() <= 0.2){
+    if(Math.random() <= 0.20){
         pieces.push(
           new bomb()
         );
       } // Only one jokerBrick is allowed to be in play
-      else if(Math.random() <= 0.4 && jokerBrickInPlay === false){
+      else if(Math.random() <= 0.3 && jokerBrickInPlay === false){
         pieces.push(
           new jokerBrick()
         );
