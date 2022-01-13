@@ -879,7 +879,7 @@ function isLeftAvailable(movingPiece){
   }
 }
 function showGameOverMsg(){
-  alert('Game Over');
+  alert('Game Over\nScore: ' + score);
 }
 function drawPieces(type, image, posX, posY){
   ctx.drawImage(image, posX, posY);
@@ -901,10 +901,6 @@ function handleKeyDown(e){
     down = true;
   }
 }
-
-var restart = sessionStorage.getItem("restart");
-
-
 function handleKeyUp(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
     right = false;
@@ -916,26 +912,19 @@ function handleKeyUp(e){
     down = false;
   }
 }
+
 startBtn.addEventListener("click", () => {
   if(startBtn.innerText === "start game"){
     if(pieces.length > 0){
       pieces = [];
     }
-    startBtn.innerText = "restart game";
+    startBtn.innerText = "end game";
     init();
-  }else{
-    sessionStorage.setItem("restart", "true");
+  }
+  else{
     location.reload()
   }
 });
-
-window.onload = () => {
-  if(restart){
-    sessionStorage.clear();
-    startBtn.innerText = "restart game";
-    init();
-  }
-};
 
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);

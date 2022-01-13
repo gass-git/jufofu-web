@@ -25,6 +25,7 @@ instructionsBtn.addEventListener('click', () => {
       },5000)
 
     }
+    
 })
 
 /**
