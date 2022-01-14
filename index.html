@@ -6,9 +6,15 @@
     <script src="instructions.js" defer></script>
     <title>Jufofa 0.4 beta | stable</title>
   </head>
-  <body>
-    <div id="score">0</div>
-    <div class="canvas-wrapper">
+  <body id="body">
+
+    <!-- Show this message if its a touch device -->
+    <div id="message" style="display:none"> 
+      This game does not work on touch screen devices.
+    </div>
+
+    <div id="score" style="display:block">0</div>
+    <div class="canvas-wrapper" id="game-wrapper" style="display:block">
       
       <!-- IMPORTANT: width and height must be multiples of 2 -->
       <canvas id="canvas" width="240" height="400"></canvas>    
@@ -44,5 +50,16 @@
       <a href="https://github.com/gass-git" target="_blank">Gass</a> - Using <a href="https://opengameart.org/content/ui-pack" target="_blank">Kenney UI pack</a> and <a href="https://www.svgbackgrounds.com/" target="_blank">SVG backgrounds</a>
     </footer>
   </body>
+  <script>
+    if(window.matchMedia("(pointer: coarse)").matches) {
+      const score = document.getElementById('score'),
+            canvasWrapper = document.getElementById('game-wrapper'),
+            message = document.getElementById('message');
+
+      message.style.display = "block";
+      score.style.display = "none";
+      canvasWrapper.style.display = "none";
+    }
+  </script>
 </html>
 
