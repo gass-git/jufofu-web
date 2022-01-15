@@ -3,10 +3,12 @@ const canvas = document.getElementById("canvas"),
       startBtn = document.getElementById("startBtn"),
       ctx = canvas.getContext("2d");
 
-const greenBlock = new Image();
+const greenBlock = new Image(),
+      greyBrick = new Image();
       
 greenBlock.src = "images/greenTile.png";
-      
+greyBrick.src = "images/horizontalGrey.png";      
+
 // The matrix will save the color and a boolean for place occupancy
 
 // matrix[rowIndex][columnIndex]
@@ -51,19 +53,42 @@ var score = 0,
     frames = 0, 
     isGameOver = false;
 
-class block {
-  constructor(color){
-    this.type = "block",
+/**
+ * @abstract
+ * 
+ * Pieces
+ * 
+ */
+
+ class block {
+  constructor(){
+    this.type = "block"
     this.color = "green",
     this.image = greenBlock,
     this.x = 120,
     this.y = 0,
     this.isMoving = true,
     this.isActive = true,
-    this.column = 3,
-    this.row = 0
+    this.usingColumns = [3],
+    this.usingRows = [0]
   }
 }
+
+class brick {
+  constructor(){
+    this.type = "brick",
+    this.color = "grey",
+    this.image = greyBrick,
+    this.x = 80,
+    this.y = 0,
+    this.isMoving = true,
+    this.isActive = true,
+    this.usingColumns = [2, 3],
+    this.usingRows = [0]
+  }
+}
+
+
 
 var frames = 0
 
@@ -77,10 +102,14 @@ function gameLoop(){
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   frames++
 
-  // Create the first piece
-  pieces.length === 0 ? pieces.push(new block()) : null
 
-  var AP // Active Piece
+  // Create the first piece
+  if(pieces.length === 0){
+    pieces.push(new block());
+  }
+
+
+  var AP // Active piece
 
   // Draw all the pieces and initialize the active piece
   pieces.forEach(p => {
@@ -98,56 +127,71 @@ function gameLoop(){
    */
 
   let n;
-  down ? n = 10 : n = 40 // For booster
+  down ? n = 10 : n = 40 // Booster
 
   if(frames > n){
     
-      let availableRow, numbers = [];
-    
-      for(let row = 0; row <= maxRow_index; row++){
-          
-          let fragment = matrix[row][AP.column]
-          
-          /**
-           * "fragment.isNotActive" means that the fragment is not been occupied by 
-           * an active piece.
-           * 
-           */
-          if(fragment.isOccupied && fragment.isNotActive){
-            numbers.push(row)
-          }
-          
-        }
+    console.log(matrix)
 
+    let lastAvailableRow, numbers = [];
+
+    /**
+     * If the piece has a length of two fragments
+     * then check the last available row on those two columns.
+     * 
+     */
+    AP['usingColumns'].forEach(column => {
+
+      for(let row = 0; row <= maxRow_index; row++){
+
+        let fragment = matrix[row][column]
+        
         /**
-         * In case the numbers array is empty the highest occupied
-         * row will be the max row.
-         * 
-         * The available row is retrieved by the row number of the highest 
-         * piece in the column minus one.
+         * "fragment.isNotActive" means that the fragment is not been occupied by 
+         * an active piece.
          * 
          */
-        numbers.length > 0 ? availableRow = Math.min(...numbers) - 1 : availableRow = maxRow_index;
-
-        // Can the active piece move to the next row?
-        let conditions = [
-          AP.row < maxRow_index,   // Canvas limit row
-          AP.row < availableRow    // Column height available
-        ]
-
-        if(conditions[0] && conditions[1]){
-          AP.row++
-
-          // Update coordinate y
-          AP.y = AP.row * 40
+        if(fragment.isOccupied && fragment.pieceIsParked){
+          numbers.push(row) // Push row number if fragment is been occupied by an inactive piece
         }
-        else{
-          // Deactivate piece and create a new one
-          AP.isActive = false
-          pieces.push(new block())
-        }
+      }
 
+    })
+        
+
+    /**
+     * In case the numbers array is empty the highest occupied
+     * row will be the max row.
+     * 
+     * The last available row is retrieved by the row number of the highest 
+     * piece in the column minus one.
+     * 
+     */
+
+    
+
+    numbers.length > 0 ? lastAvailableRow = Math.min(...numbers) - 1 : lastAvailableRow = maxRow_index;
+
+    // console.log(maxRow_index)
+    // console.log(AP.usingRows)
+
+    // Can the active piece move to the next row?
+    AP['usingRows'].forEach((row, i) => {
       
+      if(row < lastAvailableRow){
+        AP['usingRows'][i] += 1
+  
+        // Update coordinate y
+        AP.y += 40 
+      }
+      else{
+        // Deactivate piece and create a new one
+        AP.isActive = false
+        pieces.push(new brick())
+      }
+    })
+
+    
 
       // Reset frame count
       frames = 0
@@ -161,23 +205,25 @@ function gameLoop(){
    * HORIZONTAL MOVEMENT
    * 
    */
-  let left_fragment = matrix[AP.row][AP.column - 1]
+    /*let left_fragment = matrix[AP.row][AP.column - 1]
 
-  if(left && AP.column > 0 && !timeOut && !left_fragment.isOccupied){
-    AP.column -= 1;
-    AP.x -= 40;
-    timeOut = true;
-    setTimeout(() => { timeOut = false }, 120);
-  }
+    if(left && AP.column > 0 && !timeOut && !left_fragment.isOccupied){
+      AP.column -= 1;
+      AP.x -= 40;
+      timeOut = true;
+      setTimeout(() => { timeOut = false }, 120);
+    }
 
-  let right_fragment = matrix[AP.row][AP.column + 1]
+    let right_fragment = matrix[AP.row][AP.column + 1]
 
-  if(right && AP.column < maxColumn_index && !timeOut && !right_fragment.isOccupied){
-    AP.column += 1;
-    AP.x += 40;
-    timeOut = true;
-    setTimeout(() => { timeOut = false }, 120);
-  }
+    if(right && AP.column < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+      AP.column += 1;
+      AP.x += 40;
+      timeOut = true;
+      setTimeout(() => { timeOut = false }, 120);
+    }
+
+*/
   
   
 
@@ -192,7 +238,7 @@ function gameLoop(){
    * Start with a clean matrix and then fill it
    * with the position of each piece.
    * 
-   */
+   */  
   matrix = [
     [{},{},{},{},{},{}],  
     [{},{},{},{},{},{}],  
@@ -213,7 +259,7 @@ function gameLoop(){
       matrix[row][i] = {
         color: null, 
         isOccupied: false,
-        isNotActive: true
+        pieceIsParked: false
       }
 
     })
@@ -221,11 +267,21 @@ function gameLoop(){
 
   // Populate with the position of each piece
   pieces.forEach(p => {
-    let fragment = matrix[p.row][p.column]
 
-    fragment.color = p.color
-    fragment.isOccupied = true
-    fragment.isNotActive = !p.isActive
+    p['usingColumns'].forEach((column) => {
+      p['usingRows'].forEach((row) => {
+
+        let fragment = matrix[row][column]
+
+        fragment.color = p.color
+        fragment.isOccupied = true
+
+        p.isActive ? null : fragment.pieceIsParked = true
+
+      })
+    })
+
+    
   })
 
     
