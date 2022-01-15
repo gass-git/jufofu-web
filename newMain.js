@@ -1,33 +1,12 @@
-// Interface constants
 const canvas = document.getElementById("canvas"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("startBtn"),
       ctx = canvas.getContext("2d");
 
-// Block pieces images
-const greenBlock = new Image(),
-      blueBlock = new Image(),
-      greyBlock = new Image(),
-      orangeBlock = new Image(),
-      pinkBlock = new Image(),
-      redBlock = new Image(),
-      yellowBlock = new Image();
+const greenBlock = new Image();
       
 greenBlock.src = "images/greenTile.png";
-blueBlock.src = "images/blueTile.png";
-greyBlock.src = "images/greyTile-transparent.png";
-orangeBlock.src = "images/orangeTile.png";
-pinkBlock.src = "images/pinkTile.png";
-redBlock.src = "images/redTile.png";
-yellowBlock.src = "images/yellowTile.png";
-
-// Special pieces images
-const bombImage = new Image(),
-      greyBrick = new Image();  
       
-bombImage.src = "images/blackCircle.png";
-greyBrick.src = "images/longGrey-2-transparent.png";
-
 // The matrix will save the color and a boolean for place occupancy
 
 // matrix[rowIndex][columnIndex]
@@ -45,30 +24,15 @@ var matrix = [
   [{},{},{},{},{},{}]
 ];
 
-const columnWidth = 40,
-      columnHeight = 40;
-
 const column_ini = 4;
 
-const x_ini = 4 * columnWidth;
+var maxRow_index = matrix.length - 1;
 
-/*** Note: to get the coordinates x,y multiply the
-* column and row index by the columnWidth and columnHeight 
-*/
+var maxColumn_index = matrix[0].length - 1;
 
 // Pieces arrays
-var pieces = [],
-    numberOfColors_init = 2,
-    activeBrickColors = ["green", "blue", "yellow"],
-    brickColorsToAdd = ["orange", "pink"];
+var pieces = [];
 
-const framesForActivation = 8000; // 100 equals 1 second
-
-function randomActiveColor(){
-  let delta = activeBrickColors.length - 1,
-      rand = Math.round(Math.random() * delta);
-  return activeBrickColors[rand];
-}
 
 
 // Movement variables
@@ -79,6 +43,8 @@ var right = false,
     left = false,
     down = false;
 
+var timeOut = true;
+
 // Other global variables   
 var score = 0,
     timeOut = false,
@@ -88,225 +54,223 @@ var score = 0,
 class block {
   constructor(color){
     this.type = "block",
-    this.color = color,
-    this.image = getImage(color),
-    this.x = x_ini,
+    this.color = "green",
+    this.image = greenBlock,
+    this.x = 120,
     this.y = 0,
     this.isMoving = true,
     this.isActive = true,
-    this.column = [4],
-    this.row = [10]
-  }
-}
-class joker {
-  constructor(x, y, state){
-    this.type = "joker",
-    this.color = "grey",
-    this.image = greyBlock,
-    this.x = x_ini,
-    this.y = 0,
-    this.isMoving = true, 
-    this.isActive = state,
-    this.column = 4,
-    this.row = 10
-  }
-}
-class verticalBrick {
-  constructor(){
-    this.type = "verticalBrick",
-    this.color = "grey",
-    this.image = greyBrick,
-    this.x = x_ini,
-    this.y = 0,
-    this.isMoving = true, 
-    this.isActive = true,
-    this.usingColumns = [4],
-    this.usingRows = [9,10]
+    this.column = 3,
+    this.row = 0
   }
 }
 
+var frames = 0
+
 function init(){
-  // Start the first frame request
-  window.requestAnimationFrame(gameLoop);
+  window.requestAnimationFrame(gameLoop)
 }
 
 function gameLoop(){
-  /**
-   * Create a new piece at the start of the game or if
-   * the pieces array is empty.
-   */
-  if(frames === 0 || pieces.length === 0){
-      pieces.push(
-        new block(randomActiveColor())
-      );
-  }
-
-  /**
-   * When frames reach a certain amount activate a new 
-   * brick color if more remain available.
-   */
-  let max = numberOfColors_init + brickColorsToAdd.length;  
   
-  if(frames === framesForActivation && activeBrickColors.length < max){
-    activateNewColor();
+  // Clean the canvas and count the frames
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  frames++
 
-    // Reset frames
-    frames = 0; 
-  }
+  // Create the first piece
+  pieces.length === 0 ? pieces.push(new block()) : null
 
-  // Count the frames
-  frames++;
+  var activePiece;
 
-  /**
-   * Create a new piece if the last one is not active.  
+  // Draw all the pieces and initialize the active piece
+  pieces.forEach(p => {
+    drawPiece(p.image, p.x, p.y)
+    p.isActive ? activePiece = p : null
+  })
+
+
+
+  /** 
+   * @abstract 
    * 
-   * Note: the function input is the number of pieces that must be in play 
-   * to start creating bombs.
+   * VERTICAL MOVEMENT
+   * 
    */
-  createNewPiece(8);
-
-  /**
-   * Update score and clear canvas
-   */
-  scoreDiv.innerHTML = score;
-  ctx.clearRect(0,0,canvas.width, canvas.height);
-
-  /**
-   * Loop through all the pieces in play
-   */
-  pieces.forEach((piece) => {
-    drawPieces(piece.type, piece.image, piece.x, piece.y);
+  if(frames === 40){
     
-    handleVerticalMovement(piece);
-    handleHorizontalMovement(piece);
-
-    /**
-     * The following function repositions the piece on the
-     * Y axis in case are not well positioned.
-     */
-    fixVerticalPosition(piece);
-
-    // Bomb logic
-    let lastPiece = pieces[pieces.length - 1];
-
-    if(lastPiece.type === "bomb" && lastPiece.isMoving === false){
-      let bomb = lastPiece;
-
-      bombExplosion(bomb);
-
-      /* Important: when pieces are removed all other pieces
-            that where above them will move */
-      for(const s of pieces){
-        s.isMoving = true;
-      }
-
-    }
-
-  });
-
-  /**
-   * Count the number of pieces in each row and add them to 
-   * numberOfPieces_inRows array.
-   */
-  pieces.forEach((piece) => {
-    handlePiecesInRowCount(piece);
-  });
-
-  numberOfPieces_inRows.forEach((piecesInRow, index) => {
-    buildRowsDetails(piecesInRow, index);
-  });
-  
-  
-  
-    // console.log(numberOfPieces_inRows);
-  
-
-
-  /**
-   * This section handles the removal of pieces 
-   * and the score.
-   */
-  let jokerBrickMatchedRows = 0,
-      inRows = [];
-
-  rowsDetails.forEach((row) => {    
-
-    if(row.hasJokerBrick){
-      jokerBrickMatchedRows++;
-      inRows.push(row.number);
-    }
-    else if(row.colorsMatch){
-     
-      // Remove block pieces in row
-      pieces = pieces.filter((p) => { 
-        if(p.type !== "jokerBrick" && p.row === row.number){
-          return false;
-        }
-        else{
-          return true;
-        }
-      });
-
-      // Sum up score
-      score += 60;
-
-      // Reset numberOfPieces_inRows array
-      numberOfPieces_inRows.forEach((el, i) => {
-        numberOfPieces_inRows[i] = 0;
-      });
-
-      /**
-       * Important: when pieces are removed all other pieces
-       * that where above them will move 
-       */ 
-      for(const p of pieces){
-        p.isMoving = true;
-      }
-
-    }
-  });
-
-  /**
-   * If there is a joker brick in two matched
-   * colored rows, then remove these rows.
-   */
-  if(jokerBrickMatchedRows === 2){
-    for(const r of inRows){
-      pieces = pieces.filter((p) => {
-        if(p.type === "jokerBrick"){
-          if(p.topRow === r || p.bottomRow === r){
-            return false;
+      let availableRow, numbers = [];
+    
+      for(let row = 0; row <= maxRow_index; row++){
+          
+          let fragment = matrix[row][activePiece.column]
+          
+          /**
+           * "fragment.isNotActive" means that the fragment is not been occupied by 
+           * an active piece.
+           * 
+           */
+          if(fragment.isOccupied && fragment.isNotActive){
+            numbers.push(row)
           }
+          
         }
-        else if(p.row === r){
-            return false;
+
+        /**
+         * In case the numbers array is empty the highest occupied
+         * row will be the max row.
+         * 
+         * The available row is retrieved by the row number of the highest 
+         * piece in the column minus one.
+         * 
+         */
+        numbers.length > 0 ? availableRow = Math.min(...numbers) - 1 : availableRow = maxRow_index;
+
+        // Can the active piece move to the next row?
+        let conditions = [
+          activePiece.row < maxRow_index,               // Canvas limit row
+          activePiece.row < availableRow    // Column height available
+        ]
+
+        if(conditions[0] && conditions[1]){
+          activePiece.row++
+
+          // Update coordinate y
+          activePiece.y = activePiece.row * 40
         }
         else{
-          return true;
+          // Deactivate piece and create a new one
+          activePiece.isActive = false
+          pieces.push(new block())
         }
-      });
-    }
 
-    // Sum up score
-    score += 12;
+      
 
-    // Reset numberOfPieces_inRows array
-    numberOfPieces_inRows.forEach((el, i) => {
-      numberOfPieces_inRows[i] = 0;
-    });
-
-    /**
-     * Important: when pieces are removed all other pieces
-     * that where above them will move 
-     */ 
-    for(const s of pieces){
-        s.isMoving = true;
-    }
+      // Reset frame count
+      frames = 0
 
   }
+  
 
-  // Reset rowsDetails
-  rowsDetails = [];
+  /**
+   * @abstract
+   * 
+   * HORIZONTAL MOVEMENT
+   * 
+   */
+  if(left && activePiece.column > 0 && !timeOut){
+    activePiece.column -= 1;
+    activePiece.x -= 40;
+    timeOut = true;
+    setTimeout(() => { timeOut = false }, 120);
+  }
 
-  isGameOver ? null : window.requestAnimationFrame(gameLoop);  
+  if(right && activePiece.column < maxColumn_index && !timeOut){
+    activePiece.column += 1;
+    activePiece.x += 40;
+    timeOut = true;
+    setTimeout(() => { timeOut = false }, 120);
+  }
+
+  if(down){
+    // Pending
+    console.log('down')
+  }
+  
+  
+
+  
+
+
+
+
+  /**
+   * @abstract Update matrix
+   * 
+   * Start with a clean matrix and then fill it
+   * with the position of each piece.
+   * 
+   */
+  matrix = [
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],  
+    [{},{},{},{},{},{}],
+    [{},{},{},{},{},{}],
+    [{},{},{},{},{},{}],
+    [{},{},{},{},{},{}]
+  ];
+
+  // Populate matrix with empty objects
+  for(let row = 0; row < matrix.length; row++){
+    matrix[row].forEach((column, i) => {
+      
+      matrix[row][i] = {
+        color: null, 
+        isOccupied: false,
+        isNotActive: true
+      }
+
+    })
+  }
+
+  // Populate with the position of each piece
+  pieces.forEach(p => {
+    let fragment = matrix[p.row][p.column]
+
+    fragment.color = p.color
+    fragment.isOccupied = true
+    fragment.isNotActive = !p.isActive
+  })
+
+    
+  
+
+  window.requestAnimationFrame(gameLoop)
 }
+
+
+document.addEventListener("keydown", handleKeyDown, false);
+document.addEventListener("keyup", handleKeyUp, false);
+
+function drawPiece(image, x, y){
+  ctx.drawImage(image, x, y)
+}
+
+function handleKeyDown(e){
+  if(e.key === "Right" || e.key === "ArrowRight"){
+    right = true;
+  }
+  if(e.key === "Left" || e.key === "ArrowLeft"){
+    left = true;
+  }
+  if(e.key === "Down" || e.key === "ArrowDown"){
+    down = true;
+  }
+}
+function handleKeyUp(e){
+  if(e.key === "Right" || e.key === "ArrowRight"){
+    right = false;
+  }
+  if(e.key === "Left" || e.key === "ArrowLeft"){
+    left = false;
+  }
+  if(e.key === "Down" || e.key === "ArrowDown"){
+    down = false;
+  }
+}
+
+startBtn.addEventListener('click', () => {
+  if(startBtn.innerText === 'start game'){
+    pieces.length > 0 ? pieces = [] : null
+    startBtn.innerText = 'end game'
+    init()
+  }
+  else{
+    location.reload()
+  }
+})
+
+
