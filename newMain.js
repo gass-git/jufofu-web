@@ -80,12 +80,12 @@ function gameLoop(){
   // Create the first piece
   pieces.length === 0 ? pieces.push(new block()) : null
 
-  var activePiece;
+  var AP // Active Piece
 
   // Draw all the pieces and initialize the active piece
   pieces.forEach(p => {
     drawPiece(p.image, p.x, p.y)
-    p.isActive ? activePiece = p : null
+    p.isActive ? AP = p : null
   })
 
 
@@ -96,13 +96,17 @@ function gameLoop(){
    * VERTICAL MOVEMENT
    * 
    */
-  if(frames === 40){
+
+  let n;
+  down ? n = 10 : n = 40 // For booster
+
+  if(frames > n){
     
       let availableRow, numbers = [];
     
       for(let row = 0; row <= maxRow_index; row++){
           
-          let fragment = matrix[row][activePiece.column]
+          let fragment = matrix[row][AP.column]
           
           /**
            * "fragment.isNotActive" means that the fragment is not been occupied by 
@@ -127,19 +131,19 @@ function gameLoop(){
 
         // Can the active piece move to the next row?
         let conditions = [
-          activePiece.row < maxRow_index,               // Canvas limit row
-          activePiece.row < availableRow    // Column height available
+          AP.row < maxRow_index,   // Canvas limit row
+          AP.row < availableRow    // Column height available
         ]
 
         if(conditions[0] && conditions[1]){
-          activePiece.row++
+          AP.row++
 
           // Update coordinate y
-          activePiece.y = activePiece.row * 40
+          AP.y = AP.row * 40
         }
         else{
           // Deactivate piece and create a new one
-          activePiece.isActive = false
+          AP.isActive = false
           pieces.push(new block())
         }
 
@@ -157,23 +161,22 @@ function gameLoop(){
    * HORIZONTAL MOVEMENT
    * 
    */
-  if(left && activePiece.column > 0 && !timeOut){
-    activePiece.column -= 1;
-    activePiece.x -= 40;
+  let left_fragment = matrix[AP.row][AP.column - 1]
+
+  if(left && AP.column > 0 && !timeOut && !left_fragment.isOccupied){
+    AP.column -= 1;
+    AP.x -= 40;
     timeOut = true;
     setTimeout(() => { timeOut = false }, 120);
   }
 
-  if(right && activePiece.column < maxColumn_index && !timeOut){
-    activePiece.column += 1;
-    activePiece.x += 40;
+  let right_fragment = matrix[AP.row][AP.column + 1]
+
+  if(right && AP.column < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+    AP.column += 1;
+    AP.x += 40;
     timeOut = true;
     setTimeout(() => { timeOut = false }, 120);
-  }
-
-  if(down){
-    // Pending
-    console.log('down')
   }
   
   
