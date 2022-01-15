@@ -105,7 +105,7 @@ function gameLoop(){
 
   // Create the first piece
   if(pieces.length === 0){
-    pieces.push(new block());
+    pieces.push(randomPiece());
   }
 
 
@@ -125,55 +125,33 @@ function gameLoop(){
    * VERTICAL MOVEMENT
    * 
    */
-
-  let n;
+  let n
   down ? n = 10 : n = 40 // Booster
 
   if(frames > n){
     
-    console.log(matrix)
+    let lastAvailableRow, 
+        numbers = [];
 
-    let lastAvailableRow, numbers = [];
-
-    /**
-     * If the piece has a length of two fragments
-     * then check the last available row on those two columns.
-     * 
-     */
+    // Loop through all the columns that the active piece is using
     AP['usingColumns'].forEach(column => {
 
       for(let row = 0; row <= maxRow_index; row++){
 
         let fragment = matrix[row][column]
         
-        /**
-         * "fragment.isNotActive" means that the fragment is not been occupied by 
-         * an active piece.
-         * 
-         */
         if(fragment.isOccupied && fragment.pieceIsParked){
           numbers.push(row) // Push row number if fragment is been occupied by an inactive piece
         }
       }
-
     })
         
 
     /**
-     * In case the numbers array is empty the highest occupied
-     * row will be the max row.
-     * 
-     * The last available row is retrieved by the row number of the highest 
-     * piece in the column minus one.
-     * 
+     * In case the numbers array is empty, the last available
+     * row will equal maxRow_index.
      */
-
-    
-
-    numbers.length > 0 ? lastAvailableRow = Math.min(...numbers) - 1 : lastAvailableRow = maxRow_index;
-
-    // console.log(maxRow_index)
-    // console.log(AP.usingRows)
+    numbers.length > 0 ? lastAvailableRow = Math.min(...numbers) - 1 : lastAvailableRow = maxRow_index
 
     // Can the active piece move to the next row?
     AP['usingRows'].forEach((row, i) => {
@@ -187,11 +165,9 @@ function gameLoop(){
       else{
         // Deactivate piece and create a new one
         AP.isActive = false
-        pieces.push(new brick())
+        pieces.push(randomPiece())
       }
     })
-
-    
 
       // Reset frame count
       frames = 0
@@ -205,25 +181,61 @@ function gameLoop(){
    * HORIZONTAL MOVEMENT
    * 
    */
-    /*let left_fragment = matrix[AP.row][AP.column - 1]
-
-    if(left && AP.column > 0 && !timeOut && !left_fragment.isOccupied){
-      AP.column -= 1;
+  let left_fragment = matrix[ AP['usingRows'][0] ][ AP['usingColumns'][0] - 1 ]
+  
+    if(left && AP['usingColumns'][0] > 0 && !timeOut && !left_fragment.isOccupied){
+      
+      if(AP.type === "block"){
+        AP.usingColumns[0] -= 1
+      }
+      else if(AP.type === "brick"){
+        AP.usingColumns[0] -= 1
+        AP.usingColumns[1] -= 1
+      }
+      
       AP.x -= 40;
       timeOut = true;
       setTimeout(() => { timeOut = false }, 120);
     }
 
-    let right_fragment = matrix[AP.row][AP.column + 1]
+  if(right){
+  
+    let right_fragment
 
-    if(right && AP.column < maxColumn_index && !timeOut && !right_fragment.isOccupied){
-      AP.column += 1;
-      AP.x += 40;
-      timeOut = true;
-      setTimeout(() => { timeOut = false }, 120);
+    switch(AP.type){
+
+      case 'block': 
+      
+      right_fragment = matrix[ AP['usingRows'][0] ][ AP['usingColumns'][0] + 1 ]
+      
+      if(AP['usingColumns'][0] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+        AP['usingColumns'][0] += 1
+        AP.x += 40
+        timeOut = true
+        setTimeout(() => { timeOut = false }, 120)
+      }
+
+      break;
+
+      case 'brick': 
+      
+      right_fragment = matrix[AP.usingRows[0]][AP.usingColumns[1] + 1]
+
+      if(AP['usingColumns'][1] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+        AP['usingColumns'][0] += 1
+        AP['usingColumns'][1] += 1
+        AP.x += 40
+        timeOut = true
+        setTimeout(() => { timeOut = false }, 120)
+      }
+
+      break;
     }
 
-*/
+  }
+  
+
+
   
   
 
@@ -290,6 +302,16 @@ function gameLoop(){
   window.requestAnimationFrame(gameLoop)
 }
 
+function randomPiece(){
+  let rand = Math.random()
+  
+  if(rand < 0.5){
+    return new brick()
+  }
+  else{
+    return new block()
+  }
+}
 
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
