@@ -206,41 +206,88 @@ function gameLoop(){
 
       case 'block': 
       
-      right_fragment = matrix[ AP['usingRows'][0] ][ AP['usingColumns'][0] + 1 ]
-      
-      if(AP['usingColumns'][0] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
-        AP['usingColumns'][0] += 1
-        AP.x += 40
-        timeOut = true
-        setTimeout(() => { timeOut = false }, 120)
-      }
+          right_fragment = matrix[ AP['usingRows'][0] ][ AP['usingColumns'][0] + 1 ]
+          
+          if(AP['usingColumns'][0] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+            AP['usingColumns'][0] += 1
+            AP.x += 40
+            timeOut = true
+            setTimeout(() => { timeOut = false }, 120)
+          }
 
-      break;
+          break;
 
       case 'brick': 
       
-      right_fragment = matrix[AP.usingRows[0]][AP.usingColumns[1] + 1]
+          right_fragment = matrix[AP.usingRows[0]][AP.usingColumns[1] + 1]
 
-      if(AP['usingColumns'][1] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
-        AP['usingColumns'][0] += 1
-        AP['usingColumns'][1] += 1
-        AP.x += 40
-        timeOut = true
-        setTimeout(() => { timeOut = false }, 120)
-      }
+          if(AP['usingColumns'][1] < maxColumn_index && !timeOut && !right_fragment.isOccupied){
+            AP['usingColumns'][0] += 1
+            AP['usingColumns'][1] += 1
+            AP.x += 40
+            timeOut = true
+            setTimeout(() => { timeOut = false }, 120)
+          }
 
-      break;
+          break;
     }
 
   }
   
 
-
+  /**
+   * @abstract Matching rows
+   * 
+   */
   
-  
+  matrix.forEach((rowArray, rowIndex) => {
 
-  
+    let jokerCount = 0,
+        greenCount = 0,
+        yellowCount = 0;
 
+    rowArray.forEach((fragment) => {
+
+      if(fragment.isOccupied && fragment.pieceIsParked){
+        
+        switch(fragment.color){
+
+          case "grey": 
+            jokerCount++
+            break
+          
+          case "green": 
+            greenCount++
+            break
+
+          case "yellow": 
+            yellowCount++
+            break
+        }
+      }
+
+    })
+
+    let conditions = [
+      jokerCount + greenCount === maxColumn_index + 1,
+      jokerCount + yellowCount === maxColumn_index + 1
+    ]
+
+    if(conditions[0] || conditions[1]){
+
+      pieces = pieces.filter(p => {
+                  if(p['usingRows'][0] === rowIndex){
+                    return false // Remove
+                  }
+                  else{
+                    return true // Dont remove
+                  }
+                })
+    }
+
+  })
+
+ 
 
 
 
