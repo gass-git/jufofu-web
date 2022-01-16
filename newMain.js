@@ -14,12 +14,12 @@ greyBrick.src = "images/horizontalGrey.png";
 // matrix[rowIndex][columnIndex]
 
 var matrix = [
-  [{},{},{},{},{},{}],  // y:0
-  [{},{},{},{},{},{}],  // y:40
-  [{},{},{},{},{},{}],  // y:80
-  [{},{},{},{},{},{}],  // y:120
-  [{},{},{},{},{},{}],  // y:160
-  [{},{},{},{},{},{}],  // ....
+  [{},{},{},{},{},{}],  
+  [{},{},{},{},{},{}],  
+  [{},{},{},{},{},{}],  
+  [{},{},{},{},{},{}],  
+  [{},{},{},{},{},{}],  
+  [{},{},{},{},{},{}], 
   [{},{},{},{},{},{}],
   [{},{},{},{},{},{}],
   [{},{},{},{},{},{}],
@@ -88,8 +88,6 @@ class brick {
   }
 }
 
-
-
 var frames = 0
 
 function init(){
@@ -130,33 +128,14 @@ function gameLoop(){
 
   if(frames > n){
     
-    let lastAvailableRow, 
-        numbers = [];
-
-    // Loop through all the columns that the active piece is using
-    AP['usingColumns'].forEach(column => {
-
-      for(let row = 0; row <= maxRow_index; row++){
-
-        let fragment = matrix[row][column]
-        
-        if(fragment.isOccupied && fragment.pieceIsParked){
-          numbers.push(row) // Push row number if fragment is been occupied by an inactive piece
-        }
-      }
-    })
-        
-
-    /**
-     * In case the numbers array is empty, the last available
-     * row will equal maxRow_index.
-     */
-    numbers.length > 0 ? lastAvailableRow = Math.min(...numbers) - 1 : lastAvailableRow = maxRow_index
+    let lowestAvailableRow
 
     // Can the active piece move to the next row?
     AP['usingRows'].forEach((row, i) => {
       
-      if(row < lastAvailableRow){
+       lowestAvailableRow = GET_lowestAvailableRow(AP)
+
+      if(row < lowestAvailableRow){
         AP['usingRows'][i] += 1
   
         // Update coordinate y
@@ -169,8 +148,13 @@ function gameLoop(){
       }
     })
 
-      // Reset frame count
-      frames = 0
+
+    
+
+
+
+    // Reset frame count
+    frames = 0
 
   }
   
@@ -283,12 +267,14 @@ function gameLoop(){
                     return true // Dont remove
                   }
                 })
+
+                
     }
 
   })
 
  
-
+  
 
 
   /**
@@ -343,10 +329,63 @@ function gameLoop(){
     
   })
 
+    /** 
+       * If pieces have been filtered out re-arrange pieces
+       * above.
+       * 
+       */ 
+     pieces.forEach(p => {
+        
+      let lowestAvailableRow = GET_lowestAvailableRow(p)
+
+      
+
+      if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
+        
+        let pieceInRow = p['usingRows'][0]
+
+        let delta = lowestAvailableRow - pieceInRow
+        
+        p.y += 40 * delta;
+        p['usingRows'][0] = lowestAvailableRow;
+      }
     
+    })
+  
+
+
   
 
   window.requestAnimationFrame(gameLoop)
+}
+
+function GET_lowestAvailableRow(piece){
+
+  let resultRow, 
+      numbers = [];
+
+  // Loop through all the columns that the piece is using
+  piece['usingColumns'].forEach(column => {
+
+    // Loop through all the rows that are below the piece
+    for(let row = piece['usingRows'][0] + 1; row <= maxRow_index; row++){
+
+      let fragment = matrix[row][column]
+      
+      if(fragment.isOccupied && fragment.pieceIsParked){
+        numbers.push(row) // Push row number if fragment is been occupied by an inactive piece
+      }
+    }
+  })
+  
+
+  /**
+  * In case the numbers array is empty, the last available
+  * row will equal maxRow_index.
+  */
+  numbers.length > 0 ? resultRow = Math.min(...numbers) - 1 : resultRow = maxRow_index
+
+  return resultRow
 }
 
 function randomPiece(){
