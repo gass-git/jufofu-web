@@ -258,33 +258,25 @@ function gameLoop(){
         greenCount = 0,
         tall_inRow = false;
 
-    rowArray.forEach((fragment) => {
+    rowArray.forEach((fragment) => { // Loop through row columns
 
       if(fragment.isOccupied && fragment.pieceIsParked){
         
-        if(fragment.type === "tall"){
-          tall_inRow = true
-        }
+        fragment.type === "tall" ? tall_inRow = true : null
 
-       if(fragment.type === "brick"){
-          brick_fragmentCount++
-       } 
+        fragment.type === "brick" ? brick_fragmentCount++ : null
 
-       if(fragment.color === "green"){
-          greenCount++
-       }
+        fragment.color === "green" ? greenCount++ : null
 
       }
-
     })
 
     let conditions = [
-      brick_fragmentCount + greenCount === maxColumn_index + 1,
-      brick_fragmentCount + greenCount === maxColumn_index
+      brick_fragmentCount + greenCount === maxColumn_index + 1,  
+      brick_fragmentCount + greenCount === maxColumn_index       
     ]
 
     if(conditions[0]){
-
       pieces = pieces.filter(p => {
                   if(p['usingRows'][0] === rowIndex){
                     return false // Remove
@@ -295,40 +287,30 @@ function gameLoop(){
                 })      
     }
 
-    // Register the row
-    if(conditions[1] && tall_inRow){
-      savedRows.push(rowIndex)
-    }
-
+    // Register the row if there is a tall piece
+    conditions[1] && tall_inRow ? savedRows.push(rowIndex) : null
+    
+    /**
+     * If there are two rows matching colors with a tall piece in it, go 
+     * ahead and remove the pieces.
+     */
     if(savedRows.length === 2){
 
-      // Filter pieces of the first saved row  
+      for(const row of savedRows)
+
       pieces = pieces.filter(p => {
-        if(p['usingRows'][0] === savedRows[0]){
+        if(p['usingRows'][0] === row){
           return false // Remove
         }
         else{
           return true // Dont remove
         }
-      }) 
-      
-      // Filter pieces of the second saved row  
-      pieces = pieces.filter(p => {
-        if(p['usingRows'][0] === savedRows[1]){
-          return false // Remove
-        }
-        else{
-          return true // Dont remove
-        }
-      }) 
-                
+      })       
     }
 
   })
 
  
-  
-
 
   /**
    * @abstract Update matrix
@@ -535,6 +517,8 @@ function randomPiece(){
     return new brick()
   }
 }
+
+
 
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
