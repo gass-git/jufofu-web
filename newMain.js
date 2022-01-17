@@ -4,10 +4,12 @@ const canvas = document.getElementById("canvas"),
       ctx = canvas.getContext("2d");
 
 const greenBlock = new Image(),
+      tallGrey = new Image(),
       greyBrick = new Image();
       
 greenBlock.src = "images/greenTile.png";
-greyBrick.src = "images/horizontalGrey.png";      
+greyBrick.src = "images/horizontalGrey.png";    
+tallGrey.src = "images/tallGrey.png"; 
 
 // The matrix will save the color and a boolean for place occupancy
 
@@ -79,12 +81,26 @@ class brick {
     this.type = "brick",
     this.color = "grey",
     this.image = greyBrick,
-    this.x = 80,
+    this.x = 120,
     this.y = 0,
     this.isMoving = true,
     this.isActive = true,
-    this.usingColumns = [2, 3],
+    this.usingColumns = [3, 4],
     this.usingRows = [0]
+  }
+}
+
+class tall{
+  constructor(){
+    this.type = "tall",
+    this.color = "grey",
+    this.image = tallGrey,
+    this.x = 120,
+    this.y = 0,
+    this.isMoving = true,
+    this.isActive = true,
+    this.usingColumns = [3],
+    this.usingRows = [0, 1]
   }
 }
 
@@ -128,34 +144,47 @@ function gameLoop(){
 
   if(frames > n){
     
-    let lowestAvailableRow
+    let lowestAvailableRow = GET_lowestAvailableRow(AP)
 
-    // Can the active piece move to the next row?
-    AP['usingRows'].forEach((row, i) => {
-      
-       lowestAvailableRow = GET_lowestAvailableRow(AP)
+    
 
-      if(row < lowestAvailableRow){
-        AP['usingRows'][i] += 1
+    // Can the active piece move to the next row?    
+    if(AP.type === "block" || AP.type === "brick"){
+    
+      if(AP['usingRows'][0] + 1 < lowestAvailableRow){
+        
+        // Update row of piece
+        AP['usingRows'][0] += 1
   
         // Update coordinate y
         AP.y += 40 
       }
-      else{
+      else{  
         // Deactivate piece and create a new one
         AP.isActive = false
         pieces.push(randomPiece())
       }
-    })
+    }
 
+    if(AP.type === "tall"){
+      if(AP['usingRows'][1] + 1 < lowestAvailableRow){
+        
+        // Update rows of piece
+        AP['usingRows'][0] += 1
+        AP['usingRows'][1] += 1
 
-    
-
-
+        // Update coordinate y
+        AP.y += 40 
+      }
+      else{ 
+        // Deactivate piece and create a new one
+        AP.isActive = false
+        pieces.push(randomPiece())
+      }
+    }          
 
     // Reset frame count
     frames = 0
-
   }
   
 
@@ -169,10 +198,11 @@ function gameLoop(){
   
     if(left && AP['usingColumns'][0] > 0 && !timeOut && !left_fragment.isOccupied){
       
-      if(AP.type === "block"){
+      if(AP.type === "block" || AP.type === "tall"){
         AP.usingColumns[0] -= 1
       }
-      else if(AP.type === "brick"){
+      
+      if(AP.type === "brick"){
         AP.usingColumns[0] -= 1
         AP.usingColumns[1] -= 1
       }
@@ -186,9 +216,7 @@ function gameLoop(){
   
     let right_fragment
 
-    switch(AP.type){
-
-      case 'block': 
+      if(AP.type === 'block' || AP.type === 'tall'){ 
       
           right_fragment = matrix[ AP['usingRows'][0] ][ AP['usingColumns'][0] + 1 ]
           
@@ -198,10 +226,10 @@ function gameLoop(){
             timeOut = true
             setTimeout(() => { timeOut = false }, 120)
           }
+      }
 
-          break;
 
-      case 'brick': 
+      if(AP.type === 'brick'){
       
           right_fragment = matrix[AP.usingRows[0]][AP.usingColumns[1] + 1]
 
@@ -212,10 +240,8 @@ function gameLoop(){
             timeOut = true
             setTimeout(() => { timeOut = false }, 120)
           }
-
-          break;
-    }
-
+      }
+    
   }
   
 
@@ -224,40 +250,40 @@ function gameLoop(){
    * 
    */
   
+  let savedRows = []
+
   matrix.forEach((rowArray, rowIndex) => {
 
-    let jokerCount = 0,
+    let brick_fragmentCount = 0,
         greenCount = 0,
-        yellowCount = 0;
+        tall_inRow = false;
 
     rowArray.forEach((fragment) => {
 
       if(fragment.isOccupied && fragment.pieceIsParked){
         
-        switch(fragment.color){
-
-          case "grey": 
-            jokerCount++
-            break
-          
-          case "green": 
-            greenCount++
-            break
-
-          case "yellow": 
-            yellowCount++
-            break
+        if(fragment.type === "tall"){
+          tall_inRow = true
         }
+
+       if(fragment.type === "brick"){
+          brick_fragmentCount++
+       } 
+
+       if(fragment.color === "green"){
+          greenCount++
+       }
+
       }
 
     })
 
     let conditions = [
-      jokerCount + greenCount === maxColumn_index + 1,
-      jokerCount + yellowCount === maxColumn_index + 1
+      brick_fragmentCount + greenCount === maxColumn_index + 1,
+      brick_fragmentCount + greenCount === maxColumn_index
     ]
 
-    if(conditions[0] || conditions[1]){
+    if(conditions[0]){
 
       pieces = pieces.filter(p => {
                   if(p['usingRows'][0] === rowIndex){
@@ -266,8 +292,35 @@ function gameLoop(){
                   else{
                     return true // Dont remove
                   }
-                })
+                })      
+    }
 
+    // Register the row
+    if(conditions[1] && tall_inRow){
+      savedRows.push(rowIndex)
+    }
+
+    if(savedRows.length === 2){
+
+      // Filter pieces of the first saved row  
+      pieces = pieces.filter(p => {
+        if(p['usingRows'][0] === savedRows[0]){
+          return false // Remove
+        }
+        else{
+          return true // Dont remove
+        }
+      }) 
+      
+      // Filter pieces of the second saved row  
+      pieces = pieces.filter(p => {
+        if(p['usingRows'][0] === savedRows[1]){
+          return false // Remove
+        }
+        else{
+          return true // Dont remove
+        }
+      }) 
                 
     }
 
@@ -303,6 +356,7 @@ function gameLoop(){
       
       matrix[row][i] = {
         color: null, 
+        type: null,
         isOccupied: false,
         pieceIsParked: false
       }
@@ -318,6 +372,7 @@ function gameLoop(){
 
         let fragment = matrix[row][column]
 
+        fragment.type = p.type
         fragment.color = p.color
         fragment.isOccupied = true
 
@@ -338,17 +393,51 @@ function gameLoop(){
         
       let lowestAvailableRow = GET_lowestAvailableRow(p)
 
-      
+      switch(p.type){
 
-      if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
-        
-        let pieceInRow = p['usingRows'][0]
+        case "block":
 
-        let delta = lowestAvailableRow - pieceInRow
+          if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
         
-        p.y += 40 * delta;
-        p['usingRows'][0] = lowestAvailableRow;
+            let pieceInRow = p['usingRows'][0]
+    
+            let delta = lowestAvailableRow - pieceInRow
+            
+            p.y += 40 * delta
+            p['usingRows'][0] = lowestAvailableRow
+          }
+          break
+
+        case "brick":
+
+          if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
+        
+            let pieceInRow = p['usingRows'][0]
+    
+            let delta = lowestAvailableRow - pieceInRow
+            
+            p.y += 40 * delta
+            p['usingRows'][0] = lowestAvailableRow
+          }
+          break
+
+        case "tall":
+
+          if(!p.isActive && p['usingRows'][1] < lowestAvailableRow){
+        
+            let pieceInRow = p['usingRows'][1]
+    
+            let delta = lowestAvailableRow - pieceInRow
+            
+            p.y += 40 * delta;
+            p['usingRows'][0] = lowestAvailableRow - 1;
+            p['usingRows'][1] = lowestAvailableRow;
+          }
+          break
+
       }
+
+      
     
     })
   
@@ -367,8 +456,38 @@ function GET_lowestAvailableRow(piece){
   // Loop through all the columns that the piece is using
   piece['usingColumns'].forEach(column => {
 
+    /**
+     * The initial row of the loop will be the lower  
+     * row been used by the piece + 1
+     * 
+     * In the case of the "tall" piece the lower row
+     * is piece['usingRows'][1]
+     * 
+     * The initial row will switch depending of the piece
+     * type.
+     * 
+     */
+    let initialRow
+
+    switch(piece.type){
+
+      case "block": 
+        initialRow = piece['usingRows'][0] + 1
+        break
+      
+      case "brick": 
+        initialRow = piece['usingRows'][0] + 1
+        break
+
+      case "tall":
+        initialRow = piece['usingRows'][1] + 1 
+        break
+
+    }
+
+
     // Loop through all the rows that are below the piece
-    for(let row = piece['usingRows'][0] + 1; row <= maxRow_index; row++){
+    for(let row = initialRow; row <= maxRow_index; row++){
 
       let fragment = matrix[row][column]
       
@@ -390,12 +509,30 @@ function GET_lowestAvailableRow(piece){
 
 function randomPiece(){
   let rand = Math.random()
-  
-  if(rand < 0.5){
-    return new brick()
+
+  /**
+   * Only one tall piece is allowed to be in play
+   * 
+   * Note: this condition makes the matching colors work properly
+   * with the tall piece
+   */ 
+  let tall_inPlay = false
+
+  for(const piece of pieces){
+    if(piece.type === "tall"){
+      tall_inPlay = true
+      break
+    }
+  }
+
+  if(rand < 0.3 && !tall_inPlay){
+    return new tall()
+  }
+  else if(rand < 0.7){
+    return new block()
   }
   else{
-    return new block()
+    return new brick()
   }
 }
 
