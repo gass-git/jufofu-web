@@ -4,14 +4,28 @@ const canvas = document.getElementById("canvas"),
       ctx = canvas.getContext("2d");
 
 const greenBlock = new Image(),
+      blueBlock = new Image(),
       tallGreen = new Image(),
       greyBrick = new Image(),
-      longGreenBrick = new Image();
-      
+      longGreenBrick = new Image(),
+      transparentBlock = new Image(),
+      tallTransparent = new Image(),
+      flatTransparent = new Image();
+
+
+transparentBlock.src = "images/transparentBlock.png";
 greenBlock.src = "images/greenTile.png";
+blueBlock.src = "images/blueTile.png"
 greyBrick.src = "images/horizontalGrey.png";    
-tallGreen.src = "images/tallGreen.png"; 
+tallTransparent.src = "images/tallTransparent.png"; 
+flatTransparent.src = "images/flatTransparent.png"
 longGreenBrick.src = "images/longGreenBrick.png"
+
+const blockImages = {
+  green: greenBlock,
+  blue: blueBlock,
+  transparent: transparentBlock
+}
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -54,10 +68,10 @@ var score = 0,
  * 
  */
 class block {
-  constructor(){
+  constructor(color){
     this.type = "block"
-    this.color = "green",
-    this.image = greenBlock,
+    this.color = color,
+    this.image = blockImages[color],
     this.x = 120,
     this.y = 0,
     this.isActive = true,
@@ -69,7 +83,7 @@ class block {
 class brick {
   constructor(){
     this.type = "brick",
-    this.color = "grey",
+    this.color = "transparent",
     this.image = greyBrick,
     this.x = 120,
     this.y = 0,
@@ -83,8 +97,8 @@ class tall{
   constructor(){
     this.type = "tall",
     this.isVertical = true,
-    this.color = "green",
-    this.image = tallGreen,
+    this.color = "transparent",
+    this.image = tallTransparent,
     this.x = 120,
     this.y = 0,
     this.isActive = true,
@@ -132,7 +146,7 @@ function rotateTall(p){
         p.y += 40
         p.usingColumns = [ pieceColumn - 1,  pieceColumn, pieceColumn + 1 ]
         p.usingRows = [ pieceMiddleRow ] 
-        p.image = longGreenBrick
+        p.image = flatTransparent
       }
 
     }
@@ -164,7 +178,7 @@ function rotateTall(p){
       p.y -= 40
       p.usingColumns = [ pieceColumn[1] ]
       p.usingRows = [ pieceRow - 1, pieceRow, pieceRow + 1 ] 
-      p.image = tallGreen
+      p.image = tallTransparent
     }
   }
 
@@ -431,9 +445,13 @@ function gameLoop(){
 
   matrix.forEach((rowFragments, rowIndex) => {
 
-    let brick_fragmentCount = 0,
-        greenCount = 0,
-        vertical_tall_inRow = false;
+    let vertical_tall_inRow = false;
+
+    let count = {
+      blue: 0,
+      green: 0,
+      transparent: 0
+    }
 
     rowFragments.forEach((fragment) => { // Loop through row columns
 
@@ -441,24 +459,28 @@ function gameLoop(){
         
         fragment.piecePosition === "vertical" ? vertical_tall_inRow = true : null
 
-        fragment.type === "brick" ? brick_fragmentCount++ : null
+        fragment.color === "transparent" && fragment.piecePosition !== "vertical" ? count.transparent++ : null
 
-        fragment.color === "green" && fragment.piecePosition !== "vertical"? greenCount++ : null
+        fragment.color === "green" && fragment.piecePosition !== "vertical" ? count.green++ : null
+
+        fragment.color === "blue" && fragment.piecePosition !== "vertical" ? count.blue++ : null
 
       }
     })
 
-    let conditions = [
-      brick_fragmentCount + greenCount === maxColumn_index + 1,  
-      brick_fragmentCount + greenCount === maxColumn_index       
+    // Conditions
+    let c = [
+      count.transparent + count.blue === maxColumn_index + 1,
+      count.transparent + count.green === maxColumn_index + 1,  
+      count.transparent + count.green === maxColumn_index,
+      count.transparent + count.blue === maxColumn_index            
+
     ]
 
-    if(conditions[0]){
-
-      console.log('condition 0 met')
+    if(c[0] || c[1]){
 
       pieces = pieces.filter(p => {
-                  if(p['usingRows'][0] === rowIndex){
+                  if(p.usingRows[0] === rowIndex){
                     return false // Remove
                   }
                   else{
@@ -467,8 +489,10 @@ function gameLoop(){
                 })      
     }
 
-    // Register the row if there is a tall piece
-    conditions[1] && vertical_tall_inRow ? savedRows.push(rowIndex) : null
+    // Register the row if there is a tall in a matching row
+    if(c[2] || c[3]){
+      vertical_tall_inRow ? savedRows.push(rowIndex) : null
+    }
     
     /**
      * If there are two rows matching colors with a tall piece in it, go 
@@ -723,11 +747,17 @@ function randomPiece(){
     }
   }
 
-  if(rand < 0.3 && !tallInPlay){
+  if(rand < 0.2 && !tallInPlay){
     return new tall()
   }
-  else if(rand < 0.5){
-    return new block()
+  else if(rand < 0.4){
+    return new block('green')
+  }
+  else if(rand < 0.7){
+    return new block('blue')
+  }
+  else if(rand < 0.9){
+    return new block('transparent')
   }
   else{
     return new brick()
