@@ -10,16 +10,18 @@ const greenBlock = new Image(),
       longGreenBrick = new Image(),
       transparentBlock = new Image(),
       tallTransparent = new Image(),
-      flatTransparent = new Image();
+      flatTransparent = new Image(),
+      bombImage = new Image();
 
 
-transparentBlock.src = "images/transparentBlock.png";
-greenBlock.src = "images/greenTile.png";
+transparentBlock.src = "images/transparentBlock.png"
+greenBlock.src = "images/greenTile.png"
 blueBlock.src = "images/blueTile.png"
-greyBrick.src = "images/horizontalGrey.png";    
-tallTransparent.src = "images/tallTransparent.png"; 
+greyBrick.src = "images/horizontalGrey.png"    
+tallTransparent.src = "images/tallTransparent.png"
 flatTransparent.src = "images/flatTransparent.png"
 longGreenBrick.src = "images/longGreenBrick.png"
+bombImage.src = "images/blackCircle.png"
 
 const blockImages = {
   green: greenBlock,
@@ -93,6 +95,19 @@ class brick {
   }
 }
 
+class bomb{
+  constructor(){
+    this.type = "bomb"
+    this.color = null,
+    this.image = bombImage,
+    this.x = 120,
+    this.y = 0,
+    this.isActive = true,
+    this.usingColumns = [3],
+    this.usingRows = [0]
+  }
+}
+
 class tall{
   constructor(){
     this.type = "tall",
@@ -106,85 +121,6 @@ class tall{
     this.usingRows = [0, 1, 2]
   }
 }
-
-function rotateTall(p){
-
-  if(p.isVertical){
-
-    /**
-     * Before rotating let's check if the piece can rotate
-     */
-
-    // Check canvas borders
-    if(p.usingColumns[0] > 0 && p.usingColumns < maxColumn_index){
-
-      let M = matrix,
-          pieceColumn = p.usingColumns[0],
-          pieceRow = p.usingRows,
-          pieceMiddleRow = p.usingRows[1],
-          left_fragment_1 = M[pieceRow[0]][pieceColumn - 1],
-          left_fragment_2 = M[pieceRow[1]][pieceColumn - 1],
-          left_fragment_3 = M[pieceRow[2]][pieceColumn - 1],
-          right_fragment_1 = M[pieceRow[0]][pieceColumn + 1],
-          right_fragment_2 = M[pieceRow[1]][pieceColumn + 1],
-          right_fragment_3 = M[pieceRow[2]][pieceColumn + 1];
-
-      // Rotating area conditions
-      let c = [
-        !left_fragment_1.isOccupied,
-        !left_fragment_2.isOccupied,
-        !left_fragment_3.isOccupied,
-        !right_fragment_1.isOccupied,
-        !right_fragment_2.isOccupied,
-        !right_fragment_3.isOccupied
-      ]
-
-      // Is rotation possible ?
-      if(c[0] && c[1] && c[2] && c[3] && c[4] && c[5]){
-        p.isVertical = false
-        p.x -= 40
-        p.y += 40
-        p.usingColumns = [ pieceColumn - 1,  pieceColumn, pieceColumn + 1 ]
-        p.usingRows = [ pieceMiddleRow ] 
-        p.image = flatTransparent
-      }
-
-    }
-  }
-  
-  else if(!p.isVertical){
-
-    /**
-     * Before rotating let's check if the piece can rotate
-     */
-    let M = matrix,
-        pieceColumn = p.usingColumns,
-        pieceRow = p.usingRows[0],
-        topLeft_fragment = M[pieceRow - 1][pieceColumn[0]],
-        topMiddle_fragment = M[pieceRow - 1][pieceColumn[1]],
-        topRight_fragment = M[pieceRow - 1][pieceColumn[2]];
-
-    // Rotation area conditions    
-    let c = [
-      !topLeft_fragment.isOccupied,
-      !topMiddle_fragment.isOccupied,
-      !topRight_fragment.isOccupied
-    ]
-
-    if(c[0] && c[1] && c[2]){
-
-      p.isVertical = true
-      p.x += 40
-      p.y -= 40
-      p.usingColumns = [ pieceColumn[1] ]
-      p.usingRows = [ pieceRow - 1, pieceRow, pieceRow + 1 ] 
-      p.image = tallTransparent
-    }
-  }
-
-}
-
-var frames = 0
 
 function init(){
   window.requestAnimationFrame(gameLoop)
@@ -239,20 +175,45 @@ function gameLoop(){
     
 
     // Can the active piece move to the next row?    
-    if(AP.type === "block" || AP.type === "brick"){
+    if(AP.type === "block" || AP.type === "brick" || AP.type === "bomb"){
     
-      if(AP['usingRows'][0] + 1 < lowestAvailableRow){
+      if(AP.usingRows[0] < lowestAvailableRow){
         
-        // Update row of piece
-        AP['usingRows'][0] += 1
-  
-        // Update coordinate y
-        AP.y += 40 
+        if(AP.type !== "bomb" && AP.usingRows[0] + 1 < lowestAvailableRow){
+          // Update row of piece
+          AP.usingRows[0] += 1
+    
+          // Update coordinate y
+          AP.y += 40 
+        }
+        else{
+          // Update row of bomb
+          AP.usingRows[0] += 1
+    
+          // Update coordinate y
+          AP.y += 40 
+        }
+
+        
       }
-      else{  
-        // Deactivate piece and create a new one
-        AP.isActive = false
+      else{ 
+        
+        if(AP.type === "bomb"){
+        console.log(AP.usingRows[0])  
+          // Destroy sorrounding color pieces
+          explode(AP)
+    
+          // Destroy bomb
+          pieces = pieces.filter(p => p.type !== "bomb")
+        }
+        else{
+          // Deactivate piece
+          AP.isActive = false
+        }
+
+        // Create a new piece
         pieces.push(randomPiece())
+
       }
     }
 
@@ -354,6 +315,11 @@ function gameLoop(){
             AP.x -= 40;
             break
 
+          case "bomb":
+            AP.usingColumns[0] -= 1
+            AP.x -= 40;
+            break  
+
           case "brick":
             AP.usingColumns[0] -= 1
             AP.usingColumns[1] -= 1
@@ -405,6 +371,17 @@ function gameLoop(){
         switch(AP.type){
 
           case "block":
+
+            right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] + 1 ]
+
+            if(AP.usingColumns[0] < maxColumn_index && !right_fragment.isOccupied){
+              
+              AP.usingColumns[0] += 1
+              AP.x += 40
+            }
+            break
+
+          case "bomb":  
 
             right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] + 1 ]
 
@@ -687,6 +664,10 @@ function GET_lowestAvailableRow(piece){
         initialRow = piece['usingRows'][0] + 1
         break
       
+      case "bomb": 
+        initialRow = piece['usingRows'][0] + 1
+        break
+
       case "brick": 
         initialRow = piece['usingRows'][0] + 1
         break
@@ -748,7 +729,7 @@ function randomPiece(){
   }
 
   if(rand < 0.2 && !tallInPlay){
-    return new tall()
+    return new bomb()
   }
   else if(rand < 0.4){
     return new block('green')
@@ -764,7 +745,132 @@ function randomPiece(){
   }
 }
 
+function explode(p){
+  
+  let bombColumn = p.usingColumns[0],
+      bombRow = p.usingRows[0];
 
+  // Sorrounding fragments     
+  let sorroundingArea = [
+    {row: bombRow - 1, column: bombColumn - 1},   // top-left 
+    {row: bombRow - 1, column: bombColumn},       // top
+    {row: bombRow - 1, column: bombColumn + 1},   // top-right
+    {row: bombRow, column: bombColumn - 1},       // left
+    {row: bombRow, column: bombColumn + 1},       // right
+    {row: bombRow + 1, column: bombColumn - 1},   // bottom-left
+    {row: bombRow + 1, column: bombColumn},       // bottom
+    {row: bombRow + 1, column: bombColumn + 1}    // bottom-right
+  ]
+
+  // Destroy all sorrounding pieces that are not transparent
+  pieces = pieces.filter(p => {
+
+    let destroyPiece = false
+
+    if(p.type === "block"){
+      
+      let pieceRow = p.usingRows[0],
+          pieceColumn = p.usingColumns[0];
+
+      for(const area of sorroundingArea){
+
+        if(pieceRow === area.row && pieceColumn === area.column){
+
+          if(p.color !== "transparent"){
+            destroyPiece = true
+            break
+          }
+        }
+      }
+    }
+  
+    if(destroyPiece === true){
+      return false // Remove the piece
+    }
+    else{
+      return true // Keep the piece
+    }
+
+  })
+
+}
+
+function rotateTall(p){
+
+  if(p.isVertical){
+
+    /**
+     * Before rotating let's check if the piece can rotate
+     */
+
+    // Check canvas borders
+    if(p.usingColumns[0] > 0 && p.usingColumns < maxColumn_index){
+
+      let M = matrix,
+          pieceColumn = p.usingColumns[0],
+          pieceRow = p.usingRows,
+          pieceMiddleRow = p.usingRows[1],
+          left_fragment_1 = M[pieceRow[0]][pieceColumn - 1],
+          left_fragment_2 = M[pieceRow[1]][pieceColumn - 1],
+          left_fragment_3 = M[pieceRow[2]][pieceColumn - 1],
+          right_fragment_1 = M[pieceRow[0]][pieceColumn + 1],
+          right_fragment_2 = M[pieceRow[1]][pieceColumn + 1],
+          right_fragment_3 = M[pieceRow[2]][pieceColumn + 1];
+
+      // Rotating area conditions
+      let c = [
+        !left_fragment_1.isOccupied,
+        !left_fragment_2.isOccupied,
+        !left_fragment_3.isOccupied,
+        !right_fragment_1.isOccupied,
+        !right_fragment_2.isOccupied,
+        !right_fragment_3.isOccupied
+      ]
+
+      // Is rotation possible ?
+      if(c[0] && c[1] && c[2] && c[3] && c[4] && c[5]){
+        p.isVertical = false
+        p.x -= 40
+        p.y += 40
+        p.usingColumns = [ pieceColumn - 1,  pieceColumn, pieceColumn + 1 ]
+        p.usingRows = [ pieceMiddleRow ] 
+        p.image = flatTransparent
+      }
+
+    }
+  }
+  
+  else if(!p.isVertical){
+
+    /**
+     * Before rotating let's check if the piece can rotate
+     */
+    let M = matrix,
+        pieceColumn = p.usingColumns,
+        pieceRow = p.usingRows[0],
+        topLeft_fragment = M[pieceRow - 1][pieceColumn[0]],
+        topMiddle_fragment = M[pieceRow - 1][pieceColumn[1]],
+        topRight_fragment = M[pieceRow - 1][pieceColumn[2]];
+
+    // Rotation area conditions    
+    let c = [
+      !topLeft_fragment.isOccupied,
+      !topMiddle_fragment.isOccupied,
+      !topRight_fragment.isOccupied
+    ]
+
+    if(c[0] && c[1] && c[2]){
+
+      p.isVertical = true
+      p.x += 40
+      p.y -= 40
+      p.usingColumns = [ pieceColumn[1] ]
+      p.usingRows = [ pieceRow - 1, pieceRow, pieceRow + 1 ] 
+      p.image = tallTransparent
+    }
+  }
+
+}
 
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
