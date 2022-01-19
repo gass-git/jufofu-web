@@ -801,17 +801,20 @@ function randomPiece(){
   let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ]
 
   // IMPORTANT: make sure the function ALWAYS returns a piece
-  if(rand < 0.08 && pieces.length > 6){
+  if(rand < 0.1 && pieces.length > 6){
     return new bomb()
   }
-  if(rand < 0.8){
-    return new block(randomColor) 
-  }
-  else if(rand < 0.9 && !tallInPlay){ 
+  else if(rand < 0.2 && !tallInPlay){ 
     return new tall()
   }
+  else if(rand < 0.32){
+    return new block('crystal') 
+  }
+  if(rand <= 1){
+    return new block(randomColor) 
+  }
   else{
-    return new brick()
+    return new brick() // Inactive
   }
 }
 
