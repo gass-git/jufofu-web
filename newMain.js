@@ -3,31 +3,68 @@ const canvas = document.getElementById("canvas"),
       startBtn = document.getElementById("startBtn"),
       ctx = canvas.getContext("2d");
 
+// Block images ------------------------------------
 const greenBlock = new Image(),
       blueBlock = new Image(),
-      tallGreen = new Image(),
-      greyBrick = new Image(),
-      longGreenBrick = new Image(),
-      transparentBlock = new Image(),
-      tallTransparent = new Image(),
-      flatTransparent = new Image(),
-      bombImage = new Image();
+      redBlock = new Image(),
+      orangeBlock = new Image(),
+      pinkBlock = new Image(),
+      crystalBlock = new Image();
+
+crystalBlock.src = "inGame_images/crystalBlock.png"
+blueBlock.src = "inGame_images/blueBlock.png"
+greenBlock.src = "inGame_images/greenBlock.png"
+redBlock.src = "inGame_images/redBlock.png"
+orangeBlock.src = "inGame_images/orangeBlock.png"
+pinkBlock.src = "inGame_images/pinkBlock.png"
+// -------------------------------------------------
 
 
-transparentBlock.src = "images/transparentBlock.png"
-greenBlock.src = "images/greenTile.png"
-blueBlock.src = "images/blueTile.png"
-greyBrick.src = "images/horizontalGrey.png"    
-tallTransparent.src = "images/tallTransparent.png"
-flatTransparent.src = "images/flatTransparent.png"
-longGreenBrick.src = "images/longGreenBrick.png"
-bombImage.src = "images/blackCircle.png"
+// Brick image -------------------------------------
+const crystalBrick = new Image()
+
+crystalBrick.src = "inGame_images/crystalBrick.png"    
+// -------------------------------------------------
+
+
+// Tall images -------------------------------------
+const tallCrystal = new Image(),
+      flatCrystal = new Image();
+
+tallCrystal.src = "inGame_images/tallCrystal.png"
+flatCrystal.src = "inGame_images/flatCrystal.png"
+// -------------------------------------------------      
+
+// Bomb image --------------------------------------
+const bombImage = new Image()
+
+bombImage.src = "inGame_images/blackCircle.png"
+// -------------------------------------------------
+
 
 const blockImages = {
   green: greenBlock,
   blue: blueBlock,
-  transparent: transparentBlock
+  crystal: crystalBlock,
+  orange: orangeBlock,
+  pink: pinkBlock,
+  red: redBlock
 }
+
+var colorsInPlay = [
+  green,
+  blue,
+  crystal
+]
+
+const colorsToActive = [
+  orange,
+  pink,
+  red
+]
+
+// Frames needed to activate new color
+var framesForNewColor = 20000
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -85,8 +122,8 @@ class block {
 class brick {
   constructor(){
     this.type = "brick",
-    this.color = "transparent",
-    this.image = greyBrick,
+    this.color = "crystal",
+    this.image = crystalBrick,
     this.x = 120,
     this.y = 0,
     this.isActive = true,
@@ -112,8 +149,8 @@ class tall{
   constructor(){
     this.type = "tall",
     this.isVertical = true,
-    this.color = "transparent",
-    this.image = tallTransparent,
+    this.color = "crystal",
+    this.image = tallCrystal,
     this.x = 120,
     this.y = 0,
     this.isActive = true,
@@ -166,7 +203,7 @@ function gameLoop(){
    * 
    */
   let n
-  down ? n = 10 : n = 40 // Booster
+  down ? n = 5 : n = 40 // Booster
 
   if(frames > n){
     
@@ -427,7 +464,7 @@ function gameLoop(){
     let count = {
       blue: 0,
       green: 0,
-      transparent: 0
+      crystal: 0
     }
 
     rowFragments.forEach((fragment) => { // Loop through row columns
@@ -436,7 +473,7 @@ function gameLoop(){
         
         fragment.piecePosition === "vertical" ? vertical_tall_inRow = true : null
 
-        fragment.color === "transparent" && fragment.piecePosition !== "vertical" ? count.transparent++ : null
+        fragment.color === "crystal" && fragment.piecePosition !== "vertical" ? count.crystal++ : null
 
         fragment.color === "green" && fragment.piecePosition !== "vertical" ? count.green++ : null
 
@@ -447,10 +484,10 @@ function gameLoop(){
 
     // Conditions
     let c = [
-      count.transparent + count.blue === maxColumn_index + 1,
-      count.transparent + count.green === maxColumn_index + 1,  
-      count.transparent + count.green === maxColumn_index,
-      count.transparent + count.blue === maxColumn_index            
+      count.crystal + count.blue === maxColumn_index + 1,
+      count.crystal + count.green === maxColumn_index + 1,  
+      count.crystal + count.green === maxColumn_index,
+      count.crystal + count.blue === maxColumn_index            
 
     ]
 
@@ -728,20 +765,23 @@ function randomPiece(){
     }
   }
 
-  if(rand < 0.2 && !tallInPlay){
+  if(rand < 0.05){
     return new bomb()
   }
-  else if(rand < 0.4){
+  if(rand < 0.1){
+    return new block('crystal')
+  }
+  else if(rand < 0.3){
     return new block('green')
   }
   else if(rand < 0.7){
     return new block('blue')
   }
   else if(rand < 0.9){
-    return new block('transparent')
-  }
-  else{
     return new brick()
+  }
+  else if(!tallInPlay){
+    return new tall()
   }
 }
 
@@ -762,7 +802,7 @@ function explode(p){
     {row: bombRow + 1, column: bombColumn + 1}    // bottom-right
   ]
 
-  // Destroy all sorrounding pieces that are not transparent
+  // Destroy all sorrounding pieces that are not crystal
   pieces = pieces.filter(p => {
 
     let destroyPiece = false
@@ -776,7 +816,7 @@ function explode(p){
 
         if(pieceRow === area.row && pieceColumn === area.column){
 
-          if(p.color !== "transparent"){
+          if(p.color !== "crystal"){
             destroyPiece = true
             break
           }
@@ -834,7 +874,7 @@ function rotateTall(p){
         p.y += 40
         p.usingColumns = [ pieceColumn - 1,  pieceColumn, pieceColumn + 1 ]
         p.usingRows = [ pieceMiddleRow ] 
-        p.image = flatTransparent
+        p.image = flatCrystal
       }
 
     }
@@ -866,7 +906,7 @@ function rotateTall(p){
       p.y -= 40
       p.usingColumns = [ pieceColumn[1] ]
       p.usingRows = [ pieceRow - 1, pieceRow, pieceRow + 1 ] 
-      p.image = tallTransparent
+      p.image = tallCrystal
     }
   }
 
