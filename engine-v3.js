@@ -703,7 +703,7 @@ function gameLoop(){
 
     }
 
-  isGameOver ? null : window.requestAnimationFrame(gameLoop)
+  isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop)
 }
 
 function GET_lowestAvailableRow(piece){
