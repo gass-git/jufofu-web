@@ -404,7 +404,7 @@ function gameLoop(){
         right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] - 1 ]
 
          // Can it move to the right?
-        if(AP['usingColumns'][0] > 0 && !right_fragment.isOccupied){
+        if(AP['usingColumns'][2] < maxColumn_index && !right_fragment.isOccupied){
 
           AP.usingColumns[0] += 1
           AP.usingColumns[1] += 1
@@ -801,13 +801,13 @@ function randomPiece(){
   let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ]
 
   // IMPORTANT: make sure the function ALWAYS returns a piece
-  if(rand < 0.1 && pieces.length > 6){
+  if(rand < 0.12 && pieces.length > 6){
     return new bomb()
   }
-  else if(rand < 0.2 && !tallInPlay){ 
+  else if(rand < 0.25 && !tallInPlay){ 
     return new tall()
   }
-  else if(rand < 0.32){
+  else if(rand < 0.35){
     return new block('crystal') 
   }
   if(rand <= 1){
