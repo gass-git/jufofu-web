@@ -52,19 +52,19 @@ const blockImages = {
 }
 
 var colorsInPlay = [
-  green,
-  blue,
-  crystal
+  "red",
+  "blue",
+  "crystal"
 ]
 
 const colorsToActive = [
-  orange,
-  pink,
-  red
+  "orange",
+  "pink",
+  "green"
 ]
 
 // Frames needed to activate new color
-var framesForNewColor = 20000
+var framesForNewColor = 100
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -97,7 +97,8 @@ var right = false,
 
 // Other global variables   
 var score = 0,
-    frames = 0, 
+    totalFrameCount = 0,
+    frameCount = 0, 
     isGameOver = false,
     timeOut = false,
     tallInPlay = false;
@@ -167,7 +168,19 @@ function gameLoop(){
   
   // Clean the canvas and count the frames
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  frames++
+  totalFrameCount++
+  frameCount++
+
+  // Add new colors to the game after a certain number of frames 
+  if(totalFrameCount === framesForNewColor){
+    colorsInPlay.push(colorsToActive[0])
+  }
+  else if(totalFrameCount === framesForNewColor * 2){
+    colorsInPlay.push(colorsToActive[1])
+  }
+  else if(totalFrameCount === framesForNewColor * 3){
+    colorsInPlay.push(colorsToActive[2])
+  }
 
 
   // Create the first piece
@@ -205,7 +218,7 @@ function gameLoop(){
   let n
   down ? n = 5 : n = 40 // Booster
 
-  if(frames > n){
+  if(frameCount > n){
     
     let lowestAvailableRow = GET_lowestAvailableRow(AP)
 
@@ -297,7 +310,7 @@ function gameLoop(){
     }          
 
     // Reset frame count
-    frames = 0
+    frameCount = 0
   }
   
 
@@ -765,23 +778,21 @@ function randomPiece(){
     }
   }
 
+  // Get random color from colors in play
+  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ];
+  console.log(randomColor)
+
   if(rand < 0.05){
     return new bomb()
   }
-  if(rand < 0.1){
-    return new block('crystal')
+  if(rand < 0.8){
+    return new block(randomColor) 
   }
-  else if(rand < 0.3){
-    return new block('green')
-  }
-  else if(rand < 0.7){
-    return new block('blue')
-  }
-  else if(rand < 0.9){
-    return new brick()
-  }
-  else if(!tallInPlay){
+  else if(rand < 0.9 && !tallInPlay){ 
     return new tall()
+  }
+  else{
+    return new brick()
   }
 }
 
