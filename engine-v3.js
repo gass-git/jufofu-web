@@ -6,16 +6,14 @@ const canvas = document.getElementById("canvas"),
 // Block images ------------------------------------
 const greenBlock = new Image(),
       blueBlock = new Image(),
-      redBlock = new Image(),
-      orangeBlock = new Image(),
       pinkBlock = new Image(),
-      crystalBlock = new Image();
+      crystalBlock = new Image(),
+      yellowBlock = new Image();
 
 crystalBlock.src = "inGame_images/crystalBlock.png"
 blueBlock.src = "inGame_images/blueBlock.png"
 greenBlock.src = "inGame_images/greenBlock.png"
-redBlock.src = "inGame_images/redBlock.png"
-orangeBlock.src = "inGame_images/orangeBlock.png"
+yellowBlock.src = "inGame_images/yellowBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
 // -------------------------------------------------
 
@@ -46,25 +44,23 @@ const blockImages = {
   green: greenBlock,
   blue: blueBlock,
   crystal: crystalBlock,
-  orange: orangeBlock,
   pink: pinkBlock,
-  red: redBlock
+  yellow: yellowBlock
 }
 
 var colorsInPlay = [
-  "red",
+  "green",
   "blue",
   "crystal"
 ]
 
 const colorsToActive = [
-  "orange",
   "pink",
-  "green"
+  "yellow"
 ]
 
 // Frames needed to activate new color
-var framesForNewColor = 100
+var framesForNewColor = 2000
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -171,6 +167,9 @@ function gameLoop(){
   totalFrameCount++
   frameCount++
 
+  // Update score
+  scoreDiv.innerText = score
+
   // Add new colors to the game after a certain number of frames 
   if(totalFrameCount === framesForNewColor){
     colorsInPlay.push(colorsToActive[0])
@@ -249,7 +248,7 @@ function gameLoop(){
       else{ 
         
         if(AP.type === "bomb"){
-        console.log(AP.usingRows[0])  
+
           // Destroy sorrounding color pieces
           explode(AP)
     
@@ -477,6 +476,8 @@ function gameLoop(){
     let count = {
       blue: 0,
       green: 0,
+      yellow: 0,
+      pink: 0, 
       crystal: 0
     }
 
@@ -492,6 +493,10 @@ function gameLoop(){
 
         fragment.color === "blue" && fragment.piecePosition !== "vertical" ? count.blue++ : null
 
+        fragment.color === "yellow" && fragment.piecePosition !== "vertical" ? count.yellow++ : null
+
+        fragment.color === "pink" && fragment.piecePosition !== "vertical" ? count.pink++ : null
+
       }
     })
 
@@ -499,12 +504,15 @@ function gameLoop(){
     let c = [
       count.crystal + count.blue === maxColumn_index + 1,
       count.crystal + count.green === maxColumn_index + 1,  
+      count.crystal + count.yellow === maxColumn_index + 1,  
+      count.crystal + count.pink === maxColumn_index + 1,  
       count.crystal + count.green === maxColumn_index,
-      count.crystal + count.blue === maxColumn_index            
-
+      count.crystal + count.blue === maxColumn_index,
+      count.crystal + count.yellow === maxColumn_index,
+      count.crystal + count.pink === maxColumn_index                              
     ]
 
-    if(c[0] || c[1]){
+    if(c[0] || c[1] || c[2] || c[3]){
 
       pieces = pieces.filter(p => {
                   if(p.usingRows[0] === rowIndex){
@@ -514,10 +522,12 @@ function gameLoop(){
                     return true // Dont remove
                   }
                 })      
+
+      score += 10 * ( maxRow_index + 1 )
     }
 
     // Register the row if there is a tall in a matching row
-    if(c[2] || c[3]){
+    if(c[4] || c[5] || c[6] || c[7]){
       vertical_tall_inRow ? savedRows.push(rowIndex) : null
     }
     
@@ -526,6 +536,8 @@ function gameLoop(){
      * ahead and remove the pieces.
      */
     if(savedRows.length === 3){
+
+      score += 10 * 3 * ( maxRow_index + 1 )
 
       for(const row of savedRows)
 
@@ -680,11 +692,18 @@ function gameLoop(){
     
     })
   
+    // If there is a parked piece in row index "0" is game over
+    for(const fragment of matrix[0]){
 
+      if(fragment.isOccupied && fragment.pieceIsParked){
+        isGameOver = true
+        alert('Game over\nScore: ' + score)
+        break
+      }
 
-  
+    }
 
-  window.requestAnimationFrame(gameLoop)
+  isGameOver ? null : window.requestAnimationFrame(gameLoop)
 }
 
 function GET_lowestAvailableRow(piece){
@@ -779,10 +798,10 @@ function randomPiece(){
   }
 
   // Get random color from colors in play
-  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ];
-  console.log(randomColor)
+  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ]
 
-  if(rand < 0.05){
+  // IMPORTANT: make sure the function ALWAYS returns a piece
+  if(rand < 0.08 && pieces.length > 6){
     return new bomb()
   }
   if(rand < 0.8){
