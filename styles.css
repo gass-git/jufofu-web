@@ -77,7 +77,7 @@ footer a:hover {
   /*border: 1px solid white;*/
 }
 #instructions p {
-  margin-bottom: 8px;
+  margin-bottom: 15px;
 }
 @media (min-height: 0px) and (max-height: 730px) {
   footer {
