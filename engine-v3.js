@@ -17,7 +17,7 @@ yellowBlock.src = "inGame_images/yellowBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
 // -------------------------------------------------
 
-// Tall images -------------------------------------
+// long piece images -------------------------------------
 const tallCrystal = new Image(),
       flatCrystal = new Image();
 
@@ -46,13 +46,13 @@ var colorsInPlay = [
   "crystal"
 ]
 
-const colorsToActive = [
+const colorsToActivate = [
   "pink",
   "yellow"
 ]
 
 // Frames needed to activate new color
-var framesForNewColor = 2000
+var framesForNewColor = 20000
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -89,7 +89,7 @@ var score = 0,
     frameCount = 0, 
     isGameOver = false,
     timeOut = false,
-    tallInPlay = false;
+    longInPlay = false;
 
 /**
  * @abstract Piece classes
@@ -119,9 +119,9 @@ class bomb{
     this.usingRows = [0]
   }
 }
-class tall{
+class long{
   constructor(){
-    this.type = "tall",
+    this.type = "long",
     this.isVertical = true,
     this.color = "crystal",
     this.image = tallCrystal,
@@ -147,23 +147,28 @@ function gameLoop(){
   // Update score
   scoreDiv.innerText = score
 
-  // Add new colors to the game after a certain number of frames 
-  if(totalFrameCount === framesForNewColor){
-    colorsInPlay.push(colorsToActive[0])
-  }
-  else if(totalFrameCount === framesForNewColor * 2){
-    colorsInPlay.push(colorsToActive[1])
-  }
-  else if(totalFrameCount === framesForNewColor * 3){
-    colorsInPlay.push(colorsToActive[2])
-  }
+  /**
+   * Add new colors to the game after a certain
+   * number of frames.
+   */
+  switch(totalFrameCount){
+    
+    case framesForNewColor:
+      colorsInPlay.push(colorsToActivate[0])
+      break
+     
+    case framesForNewColor * 2:
+      colorsInPlay.push(colorsToActivate[1])
+      break  
 
-
+    default:
+      break  
+  }
+  
   // Create the first piece
   if(pieces.length === 0){
     pieces.push(randomPiece());
   }
-
 
   var AP // Active piece
 
@@ -177,11 +182,11 @@ function gameLoop(){
    * @abstract Rotation
    * 
    */
-  if(up && AP.type === "tall" && !timeOut){
+  if(up && AP.type === "long" && !timeOut){
     
-    rotateTall(AP)
-    timeOut = true;
-    setTimeout(() => { timeOut = false }, 120);
+    rotateLong(AP)
+    timeOut = true
+    setTimeout(() => { timeOut = false }, 120)
   }
 
 
@@ -197,8 +202,6 @@ function gameLoop(){
   if(frameCount > n){
     
     let lowestAvailableRow = GET_lowestAvailableRow(AP)
-
-    
 
     // Can the active piece move to the next row?    
     if(AP.type === "block" || AP.type === "bomb"){
@@ -219,8 +222,6 @@ function gameLoop(){
           // Update coordinate y
           AP.y += 40 
         }
-
-        
       }
       else{ 
         
@@ -239,11 +240,10 @@ function gameLoop(){
 
         // Create a new piece
         pieces.push(randomPiece())
-
       }
     }
 
-    if(AP.type === "tall"){
+    if(AP.type === "long"){
 
       if(AP.isVertical){
 
@@ -300,7 +300,7 @@ function gameLoop(){
     
     let left_fragment
 
-    if(AP.type === "tall"){
+    if(AP.type === "long"){
 
       if(AP.isVertical){
         left_fragment = matrix[ AP.usingRows[2] ][ AP.usingColumns[0] - 1 ]
@@ -328,7 +328,7 @@ function gameLoop(){
 
     }
 
-    if(AP.type !== "tall"){
+    if(AP.type !== "long"){
 
       left_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] - 1 ]
 
@@ -360,7 +360,7 @@ function gameLoop(){
   
     let right_fragment
 
-    if(AP.type === "tall"){
+    if(AP.type === "long"){
 
       if(AP.isVertical){
         right_fragment = matrix[ AP.usingRows[2] ][ AP.usingColumns[0] + 1 ]
@@ -388,7 +388,7 @@ function gameLoop(){
 
     }
 
-    if(AP.type !== "tall"){
+    if(AP.type !== "long"){
 
         switch(AP.type){
 
@@ -433,7 +433,7 @@ function gameLoop(){
 
   matrix.forEach((rowFragments, rowIndex) => {
 
-    let vertical_tall_inRow = false;
+    let vertical_long_inRow = false;
 
     let count = {
       blue: 0,
@@ -447,7 +447,7 @@ function gameLoop(){
 
       if(fragment.isOccupied && fragment.pieceIsParked){
         
-        fragment.piecePosition === "vertical" ? vertical_tall_inRow = true : null
+        fragment.piecePosition === "vertical" ? vertical_long_inRow = true : null
 
         fragment.color === "crystal" && fragment.piecePosition !== "vertical" ? count.crystal++ : null
 
@@ -488,13 +488,13 @@ function gameLoop(){
       score += 10 * ( maxRow_index + 1 )
     }
 
-    // Register the row if there is a tall in a matching row
+    // Register the row if there is a long in a matching row
     if(c[4] || c[5] || c[6] || c[7]){
-      vertical_tall_inRow ? savedRows.push(rowIndex) : null
+      vertical_long_inRow ? savedRows.push(rowIndex) : null
     }
     
     /**
-     * If there are two rows matching colors with a tall piece in it, go 
+     * If there are two rows matching colors with a long piece in it, go 
      * ahead and remove the pieces.
      */
     if(savedRows.length === 3){
@@ -566,7 +566,7 @@ function gameLoop(){
 
         p.isActive ? null : fragment.pieceIsParked = true
 
-        if(p.type === "tall"){
+        if(p.type === "long"){
           p.isVertical ? fragment.piecePosition = "vertical" : null
         }
 
@@ -600,7 +600,7 @@ function gameLoop(){
           }
           break
 
-        case "tall":
+        case "long":
 
           if(p.isVertical){
 
@@ -667,7 +667,7 @@ function GET_lowestAvailableRow(piece){
      * The initial row of the loop will be the lower  
      * row been used by the piece + 1
      * 
-     * In the case of the "tall" piece the lower row
+     * In the case of the "long" piece the lower row
      * is piece['usingRows'][1]
      * 
      * The initial row will switch depending of the piece
@@ -686,7 +686,7 @@ function GET_lowestAvailableRow(piece){
         initialRow = piece['usingRows'][0] + 1
         break
 
-      case "tall":
+      case "long":
 
         if(piece.isVertical){
           initialRow = piece['usingRows'][2] + 1 
@@ -726,19 +726,19 @@ function randomPiece(){
   let rand = Math.random()
 
   /**
-   * Only one tallInPlay is allowed to be in play,
+   * Only one longInPlay is allowed to be in play,
    * having more would create many issues..
    */
 
-  // Is there a tallInPlay?
+  // Is there a longInPlay?
   for(const p of pieces){
     
-    if(p.type === "tall"){
-     tallInPlay = true
+    if(p.type === "long"){
+     longInPlay = true
      break
     }
     else {
-     tallInPlay = false
+     longInPlay = false
     }
   }
 
@@ -749,8 +749,8 @@ function randomPiece(){
   if(rand < 0.12 && pieces.length > 6){
     return new bomb()
   }
-  else if(rand < 0.25 && !tallInPlay){ 
-    return new tall()
+  else if(rand < 0.25 && !longInPlay){ 
+    return new long()
   }
   else if(rand < 0.35){
     return new block('crystal') 
@@ -810,7 +810,7 @@ function explode(p){
 
 }
 
-function rotateTall(p){
+function rotateLong(p){
 
   if(p.isVertical){
 
