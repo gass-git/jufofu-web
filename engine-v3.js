@@ -17,14 +17,6 @@ yellowBlock.src = "inGame_images/yellowBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
 // -------------------------------------------------
 
-
-// Brick image -------------------------------------
-const crystalBrick = new Image()
-
-crystalBrick.src = "inGame_images/crystalBrick.png"    
-// -------------------------------------------------
-
-
 // Tall images -------------------------------------
 const tallCrystal = new Image(),
       flatCrystal = new Image();
@@ -115,20 +107,6 @@ class block {
     this.usingRows = [0]
   }
 }
-
-class brick {
-  constructor(){
-    this.type = "brick",
-    this.color = "crystal",
-    this.image = crystalBrick,
-    this.x = 120,
-    this.y = 0,
-    this.isActive = true,
-    this.usingColumns = [3, 4],
-    this.usingRows = [0]
-  }
-}
-
 class bomb{
   constructor(){
     this.type = "bomb"
@@ -141,7 +119,6 @@ class bomb{
     this.usingRows = [0]
   }
 }
-
 class tall{
   constructor(){
     this.type = "tall",
@@ -224,7 +201,7 @@ function gameLoop(){
     
 
     // Can the active piece move to the next row?    
-    if(AP.type === "block" || AP.type === "brick" || AP.type === "bomb"){
+    if(AP.type === "block" || AP.type === "bomb"){
     
       if(AP.usingRows[0] < lowestAvailableRow){
         
@@ -369,10 +346,6 @@ function gameLoop(){
             AP.x -= 40;
             break  
 
-          case "brick":
-            AP.usingColumns[0] -= 1
-            AP.usingColumns[1] -= 1
-            AP.x -= 40;
         }
 
       }     
@@ -441,17 +414,6 @@ function gameLoop(){
             }
             break
 
-          case "brick":
-
-            right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[1] + 1 ]
-
-            if(AP.usingColumns[1] < maxColumn_index && !right_fragment.isOccupied){
-
-              AP.usingColumns[0] += 1
-              AP.usingColumns[1] += 1
-              AP.x += 40
-            }
-            break
         }
 
            
@@ -638,19 +600,6 @@ function gameLoop(){
           }
           break
 
-        case "brick":
-
-          if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
-        
-            let pieceInRow = p['usingRows'][0]
-    
-            let delta = lowestAvailableRow - pieceInRow
-            
-            p.y += 40 * delta
-            p['usingRows'][0] = lowestAvailableRow
-          }
-          break
-
         case "tall":
 
           if(p.isVertical){
@@ -737,10 +686,6 @@ function GET_lowestAvailableRow(piece){
         initialRow = piece['usingRows'][0] + 1
         break
 
-      case "brick": 
-        initialRow = piece['usingRows'][0] + 1
-        break
-
       case "tall":
 
         if(piece.isVertical){
@@ -810,11 +755,8 @@ function randomPiece(){
   else if(rand < 0.35){
     return new block('crystal') 
   }
-  if(rand <= 1){
+  else {
     return new block(randomColor) 
-  }
-  else{
-    return new brick() // Inactive
   }
 }
 
