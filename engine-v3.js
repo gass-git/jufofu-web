@@ -157,7 +157,7 @@ function gameLoop(){
       colorsInPlay.push(colorsToActivate[0])
       break
      
-    case framesForNewColor * 2:
+    case framesForNewColor * 3:
       colorsInPlay.push(colorsToActivate[1])
       break  
 
