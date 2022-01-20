@@ -52,7 +52,7 @@ const colorsToActivate = [
 ]
 
 // Frames needed to activate new color
-var framesForNewColor = 20000
+var framesForNewColor = 1500
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
