@@ -264,8 +264,7 @@ function gameLoop(){
         }
 
       }
-
-      if(AP.isVertical === false){
+      else{
 
         if(AP['usingRows'][0] + 1 < lowestAvailableRow){
         
@@ -280,9 +279,7 @@ function gameLoop(){
           AP.isActive = false
           pieces.push(randomPiece())
         }
-
       }
-      
     }          
 
     // Reset frame count
@@ -312,8 +309,7 @@ function gameLoop(){
           AP.x -= 40;
         }
       }
-
-      else if(!AP.isVertical){
+      else{
         left_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] - 1 ]
 
          // Can it move to the left?
@@ -325,7 +321,6 @@ function gameLoop(){
           AP.x -= 40;
         }
       }
-
     }
 
     if(AP.type !== "long"){
@@ -345,17 +340,14 @@ function gameLoop(){
             AP.usingColumns[0] -= 1
             AP.x -= 40;
             break  
-
         }
-
       }     
     }
 
-    timeOut = true;
-    setTimeout(() => { timeOut = false }, 120);
+    timeOut = true
+    setTimeout(() => { timeOut = false }, 120)
   }
   
-
   if(right && !timeOut){
   
     let right_fragment
@@ -372,8 +364,7 @@ function gameLoop(){
           AP.x += 40;
         }
       }
-
-      else if(!AP.isVertical){
+      else{
         right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] - 1 ]
 
          // Can it move to the right?
@@ -385,7 +376,6 @@ function gameLoop(){
           AP.x += 40;
         }
       }
-
     }
 
     if(AP.type !== "long"){
@@ -415,12 +405,10 @@ function gameLoop(){
             break
 
         }
-
-           
     }
 
-    timeOut = true;
-    setTimeout(() => { timeOut = false }, 120);
+    timeOut = true
+    setTimeout(() => { timeOut = false }, 120)
   }
   
 
@@ -428,7 +416,6 @@ function gameLoop(){
    * @abstract Matching rows
    * 
    */
-  
   let savedRows = []
 
   matrix.forEach((rowFragments, rowIndex) => {
@@ -458,7 +445,6 @@ function gameLoop(){
         fragment.color === "yellow" && fragment.piecePosition !== "vertical" ? count.yellow++ : null
 
         fragment.color === "pink" && fragment.piecePosition !== "vertical" ? count.pink++ : null
-
       }
     })
 
@@ -516,7 +502,6 @@ function gameLoop(){
   })
 
  
-
   /**
    * @abstract Update matrix
    * 
@@ -687,19 +672,14 @@ function GET_lowestAvailableRow(piece){
         break
 
       case "long":
-
         if(piece.isVertical){
           initialRow = piece['usingRows'][2] + 1 
         }
-
-        if(piece.isVertical === false){
+        else{
           initialRow = piece['usingRows'][0] + 1 
         }
-
         break
-
     }
-
 
     // Loop through all the rows that are below the piece
     for(let row = initialRow; row <= maxRow_index; row++){
