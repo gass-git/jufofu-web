@@ -618,6 +618,8 @@ function gameLoop(){
               let pieceInRow = p.usingRows[0],
                 delta = lowestAvailableRow - pieceInRow;
 
+              let y_distance = 40 * delta    
+
               // Smooth falling effect: it takes 5 frames to fall into lowest available row
               p.y += y_distance / 5
 
