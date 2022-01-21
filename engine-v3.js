@@ -562,8 +562,8 @@ function gameLoop(){
   })
 
     /** 
-       * If pieces have been filtered out re-arrange pieces
-       * above.
+       * If pieces have been filtered out, re-arrange pieces position
+       * above the lines been removed.
        * 
        */ 
      pieces.forEach(p => {
@@ -574,14 +574,16 @@ function gameLoop(){
 
         case "block":
 
-          if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
+          if(!p.isActive && p.usingRows[0] < lowestAvailableRow){
         
-            let pieceInRow = p['usingRows'][0]
-    
-            let delta = lowestAvailableRow - pieceInRow
+            let pieceInRow = p.usingRows[0],
+                delta = lowestAvailableRow - pieceInRow;
+
+            y_distance = 40 * delta    
             
-            p.y += 40 * delta
-            p['usingRows'][0] = lowestAvailableRow
+            p.y += y_distance/5
+
+            p.y - lowestAvailableRow * 40 === 0 ? p.usingRows[0] = lowestAvailableRow : null
           }
           break
 
@@ -589,31 +591,30 @@ function gameLoop(){
 
           if(p.isVertical){
 
-            if(!p.isActive && p['usingRows'][2] < lowestAvailableRow){
+            if(!p.isActive && p.usingRows[2] < lowestAvailableRow){
           
-              let pieceInRow = p['usingRows'][2]
+              let pieceInRow = p.usingRows[2]
       
               let delta = lowestAvailableRow - pieceInRow
               
               p.y += 40 * delta;
-              p['usingRows'][0] = lowestAvailableRow - 2;
-              p['usingRows'][1] = lowestAvailableRow - 1;
-              p['usingRows'][2] = lowestAvailableRow;
+              p.usingRows[0] = lowestAvailableRow - 2;
+              p.usingRows[1] = lowestAvailableRow - 1;
+              p.usingRows[2] = lowestAvailableRow;
 
             }
           }
 
           if(p.isVertical === false){
 
-            if(!p.isActive && p['usingRows'][0] < lowestAvailableRow){
+            if(!p.isActive && p.usingRows[0] < lowestAvailableRow){
           
-              let pieceInRow = p['usingRows'][0]
+              let pieceInRow = p.usingRows[0]
     
               let delta = lowestAvailableRow - pieceInRow
 
               p.y += 40 * delta;
-              p['usingRows'][0] = lowestAvailableRow;
-
+              p.usingRows[0] = lowestAvailableRow;
             }
 
           }
@@ -866,6 +867,8 @@ function rotateLong(p){
   }
 
 }
+
+
 
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
