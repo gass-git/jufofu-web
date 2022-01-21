@@ -102,6 +102,8 @@ class block {
     this.image = blockImages[color],
     this.x = 120,
     this.y = 0,
+    this.isRearranging = false,
+    this.prevRowPos = null,
     this.isActive = true,
     this.usingColumns = [3],
     this.usingRows = [0]
@@ -127,6 +129,8 @@ class long{
     this.image = tallCrystal,
     this.x = 120,
     this.y = 0,
+    this.isRearranging = false,
+    this.prevBottomRowPos = null,
     this.isActive = true,
     this.usingColumns = [3],
     this.usingRows = [0, 1, 2]
@@ -574,57 +578,80 @@ function gameLoop(){
 
         case "block":
 
-          if(!p.isActive && p.usingRows[0] < lowestAvailableRow){
-        
-            let pieceInRow = p.usingRows[0],
-                delta = lowestAvailableRow - pieceInRow;
+          if(!p.isActive){
 
-            let y_distance = 40 * delta    
-            
-            // Smooth falling effect: it takes 5 frames to fall into lowest available row
-            p.y += y_distance / 5
+            if(p.usingRows[0] < lowestAvailableRow){
 
-            p.y - lowestAvailableRow * 40 === 0 ? p.usingRows[0] = lowestAvailableRow : null
+              p.isRearranging = true
+              p.prevRowPos = p.usingRows[0]
+              p.usingRows[0] = lowestAvailableRow
+            }
+
+            if(p.isRearranging){
+              let delta = p.usingRows[0] - p.prevRowPos,
+                  y_distance = 40 * delta;
+              
+              // Smooth falling effect: it takes 5 frames to fall into lowest available row
+              if(p.usingRows[0] * 40 - p.y > 0){
+                p.y += y_distance / 10
+              }
+              else{
+                p.isRearranging = false
+              }
+            }
+
           }
           break
 
         case "long":
 
-          if(p.isVertical){
+          if(!p.isActive && p.isVertical){
 
-            if(!p.isActive && p.usingRows[2] < lowestAvailableRow){
-          
-              let pieceInRow = p.usingRows[2],
-                  delta = lowestAvailableRow - pieceInRow;
+            if(p.usingRows[2] < lowestAvailableRow){
 
-              let y_distance = 40 * delta    
-
-              // Smooth falling effect: it takes 5 frames to fall into lowest available row
-              p.y += y_distance / 5
-
-              if(p.y + 80 - lowestAvailableRow * 40 === 0){
-                p.usingRows[0] = lowestAvailableRow - 2
-                p.usingRows[1] = lowestAvailableRow - 1
-                p.usingRows[2] = lowestAvailableRow
-              }
-
+              p.isRearranging = true
+              p.prevBottomRowPos = p.usingRows[2]           
+              p.usingRows[0] = lowestAvailableRow - 2
+              p.usingRows[1] = lowestAvailableRow - 1
+              p.usingRows[2] = lowestAvailableRow
             }
+
+            if(p.isRearranging){
+              let delta = p.usingRows[2] - p.prevBottomRowPos,
+                  y_distance = 40 * delta;
+              
+              // Smooth falling effect: it takes 5 frames to fall into lowest available row
+              if(p.usingRows[2] * 40 - ( p.y + 80 ) > 0){
+                p.y += y_distance / 10
+              }
+              else{
+                p.isRearranging = false
+              }
+            }
+
           }
 
-          if(p.isVertical === false){
+          if(!p.isActive && !p.isVertical){
 
-            if(!p.isActive && p.usingRows[0] < lowestAvailableRow){
-          
-              let pieceInRow = p.usingRows[0],
-                delta = lowestAvailableRow - pieceInRow;
+              if(p.usingRows[0] < lowestAvailableRow){
 
-              let y_distance = 40 * delta    
-
-              // Smooth falling effect: it takes 5 frames to fall into lowest available row
-              p.y += y_distance / 5
-
-              p.y - lowestAvailableRow * 40 === 0 ? p.usingRows[0] = lowestAvailableRow : null
-            }
+                p.isRearranging = true
+                p.prevBottomRowPos = p.usingRows[0]
+                p.usingRows[0] = lowestAvailableRow
+              }
+  
+              if(p.isRearranging){
+                let delta = p.usingRows[0] - p.prevBottomRowPos,
+                    y_distance = 40 * delta;
+                
+                // Smooth falling effect: it takes 5 frames to fall into lowest available row
+                if(p.usingRows[0] * 40 - p.y > 0){
+                  p.y += y_distance / 10
+                }
+                else{
+                  p.isRearranging = false
+                }
+              }
 
           }
 
