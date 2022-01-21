@@ -52,7 +52,7 @@ const colorsToActivate = [
 ]
 
 // Frames needed to activate new color
-var framesForNewColor = 1500
+var framesForNewColor = 800
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -365,10 +365,10 @@ function gameLoop(){
         }
       }
       else{
-        right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[0] - 1 ]
+        right_fragment = matrix[ AP.usingRows[0] ][ AP.usingColumns[2] + 1 ]
 
          // Can it move to the right?
-        if(AP['usingColumns'][2] < maxColumn_index && !right_fragment.isOccupied){
+        if(AP.usingColumns[2] < maxColumn_index && !right_fragment.isOccupied){
 
           AP.usingColumns[0] += 1
           AP.usingColumns[1] += 1
