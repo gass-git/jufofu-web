@@ -158,15 +158,15 @@ function gameLoop(){
    */
   switch(totalFrameCount){
     
-    case 500:
+    case 1000:
       colorsInPlay.push("pink")
       break
      
-    case 1000:
+    case 2000:
       colorsInPlay.push("white")
       break 
       
-    case 2000:
+    case 5000:
       colorsInPlay.push("orange")
       break   
 
