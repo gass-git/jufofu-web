@@ -8,13 +8,19 @@ const greenBlock = new Image(),
       blueBlock = new Image(),
       pinkBlock = new Image(),
       crystalBlock = new Image(),
-      yellowBlock = new Image();
+      yellowBlock = new Image(),
+      redBlock = new Image(),
+      whiteBlock = new Image(),
+      orangeBlock = new Image();
 
 crystalBlock.src = "inGame_images/crystalBlock.png"
 blueBlock.src = "inGame_images/blueBlock.png"
 greenBlock.src = "inGame_images/greenBlock.png"
 yellowBlock.src = "inGame_images/yellowBlock.png"
+redBlock.src = "inGame_images/redBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
+whiteBlock.src = "inGame_images/whiteBlock.png"
+orangeBlock.src = "inGame_images/orangeBlock.png"
 // -------------------------------------------------
 
 // long piece images -------------------------------------
@@ -37,22 +43,17 @@ const blockImages = {
   blue: blueBlock,
   crystal: crystalBlock,
   pink: pinkBlock,
-  yellow: yellowBlock
+  yellow: yellowBlock,
+  red: redBlock,
+  white: whiteBlock,
+  orange: orangeBlock
 }
 
 var colorsInPlay = [
-  "green",
+  "yellow",
   "blue",
   "crystal"
 ]
-
-const colorsToActivate = [
-  "pink",
-  "yellow"
-]
-
-// Frames needed to activate new color
-var framesForNewColor = 800
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -157,13 +158,17 @@ function gameLoop(){
    */
   switch(totalFrameCount){
     
-    case framesForNewColor:
-      colorsInPlay.push(colorsToActivate[0])
+    case 500:
+      colorsInPlay.push("pink")
       break
      
-    case framesForNewColor * 3:
-      colorsInPlay.push(colorsToActivate[1])
-      break  
+    case 1000:
+      colorsInPlay.push("white")
+      break 
+      
+    case 2000:
+      colorsInPlay.push("orange")
+      break   
 
     default:
       break  
@@ -428,10 +433,11 @@ function gameLoop(){
 
     let count = {
       blue: 0,
-      green: 0,
+      orange: 0,
       yellow: 0,
       pink: 0, 
-      crystal: 0
+      crystal: 0,
+      white: 0
     }
 
     rowFragments.forEach((fragment) => { // Loop through row columns
@@ -442,29 +448,33 @@ function gameLoop(){
 
         fragment.color === "crystal" && fragment.piecePosition !== "vertical" ? count.crystal++ : null
 
-        fragment.color === "green" && fragment.piecePosition !== "vertical" ? count.green++ : null
+        fragment.color === "yellow" && fragment.piecePosition !== "vertical" ? count.yellow++ : null
 
         fragment.color === "blue" && fragment.piecePosition !== "vertical" ? count.blue++ : null
 
-        fragment.color === "yellow" && fragment.piecePosition !== "vertical" ? count.yellow++ : null
+        fragment.color === "orange" && fragment.piecePosition !== "vertical" ? count.orange++ : null
 
         fragment.color === "pink" && fragment.piecePosition !== "vertical" ? count.pink++ : null
+
+        fragment.color === "white" && fragment.piecePosition !== "vertical" ? count.white++ : null
       }
     })
 
     // Conditions
     let c = [
       count.crystal + count.blue === maxColumn_index + 1,
-      count.crystal + count.green === maxColumn_index + 1,  
+      count.crystal + count.orange === maxColumn_index + 1,  
       count.crystal + count.yellow === maxColumn_index + 1,  
       count.crystal + count.pink === maxColumn_index + 1,  
-      count.crystal + count.green === maxColumn_index,
+      count.crystal + count.white === maxColumn_index + 1,  
+      count.crystal + count.orange === maxColumn_index,
       count.crystal + count.blue === maxColumn_index,
       count.crystal + count.yellow === maxColumn_index,
-      count.crystal + count.pink === maxColumn_index                              
+      count.crystal + count.pink === maxColumn_index,
+      count.crystal + count.white === maxColumn_index                              
     ]
 
-    if(c[0] || c[1] || c[2] || c[3]){
+    if(c[0] || c[1] || c[2] || c[3] || c[4]){
 
       pieces = pieces.filter(p => {
                   if(p.usingRows[0] === rowIndex){
@@ -479,7 +489,7 @@ function gameLoop(){
     }
 
     // Register the row if there is a long in a matching row
-    if(c[4] || c[5] || c[6] || c[7]){
+    if(c[5] || c[6] || c[7] || c[8] || c[9]){
       vertical_long_inRow ? savedRows.push(rowIndex) : null
     }
     
@@ -760,7 +770,7 @@ function randomPiece(){
   }
 
   // Get random color from colors in play
-  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length - 1) ) ]
+  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length) ) ]
 
   // IMPORTANT: make sure the function ALWAYS returns a piece
   if(rand < 0.12 && pieces.length > 6){
