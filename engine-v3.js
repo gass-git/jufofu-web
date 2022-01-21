@@ -579,9 +579,10 @@ function gameLoop(){
             let pieceInRow = p.usingRows[0],
                 delta = lowestAvailableRow - pieceInRow;
 
-            y_distance = 40 * delta    
+            let y_distance = 40 * delta    
             
-            p.y += y_distance/5
+            // Smooth falling effect: it takes 5 frames to fall into lowest available row
+            p.y += y_distance / 5
 
             p.y - lowestAvailableRow * 40 === 0 ? p.usingRows[0] = lowestAvailableRow : null
           }
@@ -593,14 +594,19 @@ function gameLoop(){
 
             if(!p.isActive && p.usingRows[2] < lowestAvailableRow){
           
-              let pieceInRow = p.usingRows[2]
-      
-              let delta = lowestAvailableRow - pieceInRow
-              
-              p.y += 40 * delta;
-              p.usingRows[0] = lowestAvailableRow - 2;
-              p.usingRows[1] = lowestAvailableRow - 1;
-              p.usingRows[2] = lowestAvailableRow;
+              let pieceInRow = p.usingRows[2],
+                  delta = lowestAvailableRow - pieceInRow;
+
+              let y_distance = 40 * delta    
+
+              // Smooth falling effect: it takes 5 frames to fall into lowest available row
+              p.y += y_distance / 5
+
+              if(p.y + 80 - lowestAvailableRow * 40 === 0){
+                p.usingRows[0] = lowestAvailableRow - 2
+                p.usingRows[1] = lowestAvailableRow - 1
+                p.usingRows[2] = lowestAvailableRow
+              }
 
             }
           }
@@ -609,12 +615,13 @@ function gameLoop(){
 
             if(!p.isActive && p.usingRows[0] < lowestAvailableRow){
           
-              let pieceInRow = p.usingRows[0]
-    
-              let delta = lowestAvailableRow - pieceInRow
+              let pieceInRow = p.usingRows[0],
+                delta = lowestAvailableRow - pieceInRow;
 
-              p.y += 40 * delta;
-              p.usingRows[0] = lowestAvailableRow;
+              // Smooth falling effect: it takes 5 frames to fall into lowest available row
+              p.y += y_distance / 5
+
+              p.y - lowestAvailableRow * 40 === 0 ? p.usingRows[0] = lowestAvailableRow : null
             }
 
           }
