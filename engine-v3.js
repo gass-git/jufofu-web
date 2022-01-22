@@ -219,15 +219,16 @@ function gameLoop(){
    * 
    */
   let n
-  down ? n = 5 : n = 40 // Booster
 
-  // Progress bar
-  if(down){
+  if(down){ // Booster
+    n = 5
     fill += 0.1
-    
-    // Update 
-    
   }
+  else{
+    n = 40
+  }
+  
+  // Update progress bar
   progressBar.style.width = fill + '%'
 
 
