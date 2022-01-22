@@ -37,6 +37,8 @@ const bombImage = new Image()
 bombImage.src = "inGame_images/blackCircle.png"
 // -------------------------------------------------
 
+// Variable to register coordinates of blocks removed
+var savedPositions = []
 
 const blockImages = {
   green: greenBlock,
@@ -54,6 +56,13 @@ var colorsInPlay = [
   "blue",
   "crystal"
 ]
+
+const bigParticle = new Image(),
+      smallParticle = new Image();
+
+bigParticle.src = 'inGame_images/bigParticle.png'
+smallParticle.src = 'inGame_images/smallParticle.png';     
+
 
 // matrix[rowIndex][columnIndex]
 var matrix = [
@@ -684,6 +693,32 @@ function gameLoop(){
 
     }
 
+    /**
+     * @abstract
+     * 
+     * Animation effects
+     * 
+     */
+    if(savedPositions.length > 0){
+
+      savedPositions.forEach((pos, i) => {
+
+        if(pos.frameCount > 4){
+          drawPiece(bigParticle, pos.x, pos.y)
+          savedPositions[i].frameCount -= 1
+        }
+
+
+        if(pos.pendingAnimations <= 4){
+          drawPiece(smallParticle, pos.x, pos.y)
+          savedPositions[i].frameCount -= 1
+        }
+      })
+    }
+
+  savedPositions = savedPositions.filter(pos => pos.frameCount > 0)
+
+
   isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop)
 }
 
@@ -804,6 +839,8 @@ function explode(p){
     {row: bombRow + 1, column: bombColumn + 1}    // bottom-right
   ]
 
+  
+
   // Destroy all sorrounding pieces that are not crystal
   pieces = pieces.filter(p => {
 
@@ -827,6 +864,14 @@ function explode(p){
     }
   
     if(destroyPiece === true){
+      
+      // Save positions for particle animations
+      savedPositions.push({
+        x: p.x + 9,
+        y: p.y + 10,
+        frameCount: 10
+      })
+
       return false // Remove the piece
     }
     else{
@@ -835,6 +880,7 @@ function explode(p){
 
   })
 
+  
 }
 
 function rotateLong(p){
