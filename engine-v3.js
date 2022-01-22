@@ -953,9 +953,9 @@ function handleKeyUp(e){
 }
 
 startBtn.addEventListener('click', () => {
-  if(startBtn.innerText === 'start game'){
+  if(startBtn.innerText === 'Start Game'){
     pieces.length > 0 ? pieces = [] : null
-    startBtn.innerText = 'end game'
+    startBtn.innerText = 'End Game'
     init()
   }
   else{

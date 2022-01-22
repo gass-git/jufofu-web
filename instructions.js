@@ -5,15 +5,15 @@ const instructionsBtn = document.getElementById('instructionsBtn'),
 instructionsBtn.addEventListener('click', () => {
 
   // Show instructions only if the game has not started
-  if(startBtn.innerText === 'start game'){
+  if(startBtn.innerText === 'Start Game'){
 
     if(instructions.style.display === 'block'){
       instructions.style.display = 'none';
-      instructionsBtn.innerText = 'show instructions';
+      instructionsBtn.innerText = 'How to Play?';
     }
     else{
       instructions.style.display = 'block';
-      instructionsBtn.innerText = 'hide instructions';
+      instructionsBtn.innerText = 'Hide Instructions';
     }
 
   }  
@@ -36,7 +36,7 @@ startBtn.addEventListener('click', () => {
   
   if(instructions.style.display === 'block'){
     instructions.style.display = 'none';
-    instructionsBtn.innerText = 'show instructions';
+    instructionsBtn.innerText = 'How to Play?';
   }
   
 })
