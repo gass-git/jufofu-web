@@ -1,7 +1,11 @@
 const canvas = document.getElementById("canvas"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("startBtn"),
-      ctx = canvas.getContext("2d");
+      ctx = canvas.getContext("2d"),
+      progressBar = document.getElementById("progress-bar");
+
+// Variable for progress bar functionality
+var fill = 0
 
 // Block images ------------------------------------
 const greenBlock = new Image(),
@@ -216,6 +220,16 @@ function gameLoop(){
    */
   let n
   down ? n = 5 : n = 40 // Booster
+
+  // Progress bar
+  if(down){
+    fill += 0.1
+    
+    // Update 
+    
+  }
+  progressBar.style.width = fill + '%'
+
 
   if(frameCount > n){
     
