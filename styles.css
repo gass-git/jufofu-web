@@ -108,3 +108,25 @@ footer a:hover {
   color: white;
   font-family: "Play", sans-serif;
 }
+.bar-wrapper {
+  width: 100%;
+  height: 50px;
+}
+
+.bar {
+  margin: 0 auto;
+  width: 294px;
+  background-color: rgb(255, 165, 0, 0.3);
+  padding: 3px;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgb(255, 165, 0.3);
+}
+
+.bar-fill {
+  display: block;
+  height: 22px;
+  background-color: #b3d85a;
+  border-radius: 3px;
+  transition: width 500ms ease-in-out;
+}
