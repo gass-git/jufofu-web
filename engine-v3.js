@@ -222,7 +222,7 @@ function gameLoop(){
 
   if(down){ // Booster
     n = 5
-    fill += 0.1
+    fill < 100.1 ? fill += 0.1 : fill = 0  // Progress bar fill
   }
   else{
     n = 40
