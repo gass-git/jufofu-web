@@ -2,10 +2,8 @@ const canvas = document.getElementById("canvas"),
       scoreDiv = document.getElementById("score"),
       startBtn = document.getElementById("startBtn"),
       ctx = canvas.getContext("2d"),
-      progressBar = document.getElementById("progress-bar");
-
-// Variable for progress bar functionality
-var fill = 0
+      progressBar = document.getElementById("progress-bar"),
+      bombsInventory = document.getElementById("bombs-inventory");
 
 // Block images ------------------------------------
 const greenBlock = new Image(),
@@ -95,7 +93,8 @@ const speed = 1,
 var right = false,
     left = false,
     down = false,
-    up = false;
+    up = false,
+    spacebar = false;
 
 // Other global variables   
 var score = 0,
@@ -104,6 +103,13 @@ var score = 0,
     isGameOver = false,
     timeOut = false,
     longInPlay = false;
+
+// Variable for progress bar functionality
+var fill = 0
+
+// Bomb inventory
+var bombsAvailable = 0,
+    throwBomb = false;
 
 /**
  * @abstract Piece classes
@@ -189,7 +195,7 @@ function gameLoop(){
   
   // Create the first piece
   if(pieces.length === 0){
-    pieces.push(randomPiece());
+    pieces.push(createPiece());
   }
 
   var AP // Active piece
@@ -199,6 +205,17 @@ function gameLoop(){
     drawPiece(p.image, p.x, p.y)
     p.isActive ? AP = p : null
   })
+
+  /**
+   * @abstract Throw bomb on next turn ?
+   * 
+   */
+  if(spacebar && !throwBomb && bombsAvailable > 0){
+    
+    throwBomb = true
+    bombsInventory.removeChild(bombsInventory.childNodes[bombsAvailable - 1])
+  }
+
 
   /**
    * @abstract Rotation
@@ -220,9 +237,28 @@ function gameLoop(){
    */
   let n
 
-  if(down){ // Booster
-    n = 5
-    fill < 100.1 ? fill += 0.1 : fill = 0  // Progress bar fill
+  // Show available bombs 
+  var node = document.createElement("span")
+  var imageElement = document.createElement("img")
+  imageElement.src = "inGame_images/blackCircle.png"
+  node.appendChild(imageElement)
+
+  if(down){ 
+    n = 5 // Booster
+
+    // Bombs inventory
+    if(fill < 100){
+      fill += 0.2
+    }
+    else{
+      fill = 0
+
+      // Maximum capacity of bombs in inventory
+      bombsAvailable <= 8 ?  bombsAvailable++ : null
+
+      // Append new bomb to inventory DIV
+      bombsInventory.appendChild(node)
+    }
   }
   else{
     n = 40
@@ -272,7 +308,7 @@ function gameLoop(){
         }
 
         // Create a new piece
-        pieces.push(randomPiece())
+        pieces.push(createPiece())
       }
     }
 
@@ -293,7 +329,7 @@ function gameLoop(){
         else{ 
           // Deactivate piece and create a new one
           AP.isActive = false
-          pieces.push(randomPiece())
+          pieces.push(createPiece())
         }
 
       }
@@ -310,7 +346,7 @@ function gameLoop(){
         else{ 
           // Deactivate piece and create a new one
           AP.isActive = false
-          pieces.push(randomPiece())
+          pieces.push(createPiece())
         }
       }
     }          
@@ -799,42 +835,49 @@ function GET_lowestAvailableRow(piece){
   return resultRow
 }
 
-function randomPiece(){
-  let rand = Math.random()
+function createPiece(){
+  
+  if(throwBomb){
 
-  /**
-   * Only one longInPlay is allowed to be in play,
-   * having more would create many issues..
-   */
+    throwBomb = false
+    bombsAvailable -= 1
+    return new bomb()
+  }else{
 
-  // Is there a longInPlay?
-  for(const p of pieces){
-    
-    if(p.type === "long"){
-     longInPlay = true
-     break
+    let rand = Math.random()
+
+    /**
+     * Only one longInPlay is allowed to be in play,
+     * having more would create many issues..
+     */
+
+    // Is there a longInPlay?
+    for(const p of pieces){
+      
+      if(p.type === "long"){
+      longInPlay = true
+      break
+      }
+      else {
+      longInPlay = false
+      }
+    }
+
+    // Get random color from colors in play
+    let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length) ) ]
+
+    // IMPORTANT: make sure the function ALWAYS returns a piece
+    if(rand < 0.15 && !longInPlay){ 
+      return new long()
+    }
+    else if(rand < 0.25){
+      return new block('crystal') 
     }
     else {
-     longInPlay = false
+      return new block(randomColor) 
     }
   }
-
-  // Get random color from colors in play
-  let randomColor = colorsInPlay[ Math.floor( Math.random() * (colorsInPlay.length) ) ]
-
-  // IMPORTANT: make sure the function ALWAYS returns a piece
-  if(rand < 0.12 && pieces.length > 6){
-    return new bomb()
-  }
-  else if(rand < 0.25 && !longInPlay){ 
-    return new long()
-  }
-  else if(rand < 0.35){
-    return new block('crystal') 
-  }
-  else {
-    return new block(randomColor) 
-  }
+  
 }
 
 function explode(p){
@@ -986,30 +1029,36 @@ function drawPiece(image, x, y){
 
 function handleKeyDown(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
-    right = true;
+    right = true
   }
   if(e.key === "Left" || e.key === "ArrowLeft"){
-    left = true;
+    left = true
   }
   if(e.key === "Down" || e.key === "ArrowDown"){
-    down = true;
+    down = true
   }
   if(e.key === "Up" || e.key === "ArrowUp"){
-    up = true;
+    up = true
+  }
+  if(e.keyCode === 32){
+    spacebar = true
   }
 }
 function handleKeyUp(e){
   if(e.key === "Right" || e.key === "ArrowRight"){
-    right = false;
+    right = false
   }
   if(e.key === "Left" || e.key === "ArrowLeft"){
-    left = false;
+    left = false
   }
   if(e.key === "Down" || e.key === "ArrowDown"){
-    down = false;
+    down = false
   }
   if(e.key === "Up" || e.key === "ArrowUp"){
-    up = false;
+    up = false
+  }
+  if(e.keyCode === 32){
+    spacebar = false
   }
 }
 
