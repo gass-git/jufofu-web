@@ -1071,6 +1071,8 @@ startBtn.addEventListener('click', () => {
   else{
     location.reload()
   }
+
+  document.activeElement.blur()
 })
 
 

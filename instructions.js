@@ -26,6 +26,8 @@ instructionsBtn.addEventListener('click', () => {
 
     }
     
+    document.activeElement.blur()
+
 })
 
 /**
