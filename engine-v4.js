@@ -106,8 +106,8 @@ var throwBomb = false;
  * @abstract Piece classes
  *
  */
-var block = /** @class */ (function () {
-    function block(color) {
+var Block = /** @class */ (function () {
+    function Block(color) {
         this.type = "block";
         this.color = color,
             this.image = blockImages[color],
@@ -119,10 +119,10 @@ var block = /** @class */ (function () {
             this.usingColumns = [3],
             this.usingRows = [0];
     }
-    return block;
+    return Block;
 }());
-var bomb = /** @class */ (function () {
-    function bomb() {
+var Bomb = /** @class */ (function () {
+    function Bomb() {
         this.type = "bomb";
         this.color = null,
             this.image = bombImage,
@@ -132,10 +132,10 @@ var bomb = /** @class */ (function () {
             this.usingColumns = [3],
             this.usingRows = [0];
     }
-    return bomb;
+    return Bomb;
 }());
-var long = /** @class */ (function () {
-    function long() {
+var Long = /** @class */ (function () {
+    function Long() {
         this.type = "long",
             this.isVertical = true,
             this.color = "crystal",
@@ -148,7 +148,7 @@ var long = /** @class */ (function () {
             this.usingColumns = [3],
             this.usingRows = [0, 1, 2];
     }
-    return long;
+    return Long;
 }());
 function init() {
     window.requestAnimationFrame(gameLoop);
@@ -663,7 +663,7 @@ function createPiece() {
     if (throwBomb) {
         throwBomb = false;
         bombsAvailable -= 1;
-        return new bomb();
+        return new Bomb();
     }
     else {
         var rand = Math.random();
@@ -686,13 +686,13 @@ function createPiece() {
         var randomColor = colorsInPlay[Math.floor(Math.random() * (colorsInPlay.length))];
         // IMPORTANT: make sure the function ALWAYS returns a piece
         if (rand < 0.15 && !longInPlay) {
-            return new long();
+            return new Long();
         }
         else if (rand < 0.25) {
-            return new block('crystal');
+            return new Block('crystal');
         }
         else {
-            return new block(randomColor);
+            return new Block(randomColor);
         }
     }
 }

@@ -150,8 +150,19 @@ var throwBomb: boolean = false
  * @abstract Piece classes
  * 
  */
-class block {
-  constructor(color) {
+class Block {
+  type: string;
+  color: string;
+  image: object;
+  x: number;
+  y: number;
+  isRearranging: boolean;
+  prevRowPos: number | null;
+  isActive: boolean;
+  usingColumns: number[];
+  usingRows: number[];
+
+  constructor(color: string) {
     this.type = "block"
     this.color = color,
       this.image = blockImages[color],
@@ -164,7 +175,16 @@ class block {
       this.usingRows = [0]
   }
 }
-class bomb {
+class Bomb {
+  type: string;
+  color: string | null;
+  image: object;
+  x: number;
+  y: number;
+  isActive: boolean;
+  usingColumns: number[];
+  usingRows: number[];
+
   constructor() {
     this.type = "bomb"
     this.color = null,
@@ -176,7 +196,19 @@ class bomb {
       this.usingRows = [0]
   }
 }
-class long {
+class Long {
+  type: string;
+  isVertical: boolean;
+  color: string;
+  image: object;
+  x: number;
+  y: number;
+  isRearranging: boolean;
+  prevBottomRowPos: number | null;
+  isActive: boolean;
+  usingColumns: number[];
+  usingRows: number[];
+
   constructor() {
     this.type = "long",
       this.isVertical = true,
@@ -876,7 +908,7 @@ function createPiece() {
 
     throwBomb = false
     bombsAvailable -= 1
-    return new bomb()
+    return new Bomb()
   } else {
 
     let rand = Math.random()
@@ -903,13 +935,13 @@ function createPiece() {
 
     // IMPORTANT: make sure the function ALWAYS returns a piece
     if (rand < 0.15 && !longInPlay) {
-      return new long()
+      return new Long()
     }
     else if (rand < 0.25) {
-      return new block('crystal')
+      return new Block('crystal')
     }
     else {
-      return new block(randomColor)
+      return new Block(randomColor)
     }
   }
 
