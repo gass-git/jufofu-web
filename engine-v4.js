@@ -1,6 +1,20 @@
-var canvas = document.getElementById("canvas"), scoreDiv = document.getElementById("score"), startBtn = document.getElementById("startBtn"), ctx = canvas.getContext("2d"), progressBar = document.getElementById("progress-bar"), bombsInventory = document.getElementById("bombs-inventory");
-// Block images ------------------------------------
-var greenBlock = new Image(), blueBlock = new Image(), pinkBlock = new Image(), crystalBlock = new Image(), yellowBlock = new Image(), redBlock = new Image(), whiteBlock = new Image(), orangeBlock = new Image();
+// HTML elements ---------------------------------------------------
+var canvas = document.getElementById("canvas");
+var scoreDiv = document.getElementById("score");
+var startBtn = document.getElementById("startBtn");
+var ctx = canvas.getContext("2d");
+var progressBar = document.getElementById("progress-bar");
+var bombsInventory = document.getElementById("bombs-inventory");
+//------------------------------------------------------------------
+// Block images ----------------------------------------------------
+var greenBlock = new Image();
+var blueBlock = new Image();
+var pinkBlock = new Image();
+var crystalBlock = new Image();
+var yellowBlock = new Image();
+var redBlock = new Image();
+var whiteBlock = new Image();
+var orangeBlock = new Image();
 crystalBlock.src = "inGame_images/crystalBlock.png";
 blueBlock.src = "inGame_images/blueBlock.png";
 greenBlock.src = "inGame_images/greenBlock.png";
@@ -9,17 +23,23 @@ redBlock.src = "inGame_images/redBlock.png";
 pinkBlock.src = "inGame_images/pinkBlock.png";
 whiteBlock.src = "inGame_images/whiteBlock.png";
 orangeBlock.src = "inGame_images/orangeBlock.png";
-// -------------------------------------------------
-// long piece images -------------------------------------
-var tallCrystal = new Image(), flatCrystal = new Image();
+// -----------------------------------------------------------------
+// long piece images -----------------------------------------------
+var tallCrystal = new Image();
+var flatCrystal = new Image();
 tallCrystal.src = "inGame_images/tallCrystal.png";
 flatCrystal.src = "inGame_images/flatCrystal.png";
-// -------------------------------------------------      
-// Bomb image --------------------------------------
+// -----------------------------------------------------------------
+// Bomb image ------------------------------------------------------
 var bombImage = new Image();
 bombImage.src = "inGame_images/blackCircle.png";
-// -------------------------------------------------
-// Variable to register coordinates of blocks removed
+// -----------------------------------------------------------------
+// Particle images -------------------------------------------------
+var bigParticle = new Image();
+var smallParticle = new Image();
+bigParticle.src = 'inGame_images/bigParticle.png';
+smallParticle.src = 'inGame_images/smallParticle.png';
+// Save coordinates of blocks removed
 var savedPositions = [];
 var blockImages = {
     green: greenBlock,
@@ -36,9 +56,6 @@ var colorsInPlay = [
     "blue",
     "crystal"
 ];
-var bigParticle = new Image(), smallParticle = new Image();
-bigParticle.src = 'inGame_images/bigParticle.png';
-smallParticle.src = 'inGame_images/smallParticle.png';
 // matrix[rowIndex][columnIndex]
 var matrix = [
     [{}, {}, {}, {}, {}, {}],
@@ -52,18 +69,39 @@ var matrix = [
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}]
 ];
-var maxRow_index = matrix.length - 1, maxColumn_index = matrix[0].length - 1;
+var maxRow_index = matrix.length - 1;
+var maxColumn_index = matrix[0].length - 1;
 // Pieces arrays
 var pieces = [];
-// Movement variables
-var speed = 1, boost = 6;
-var right = false, left = false, down = false, up = false, spacebar = false;
+/**
+ * @abstract Movement variables
+ *
+ * `speed` is the rate of frames at which the blocks
+ * drop.
+ *
+ * The smaller the `boost` number, the fastest
+ * the piece will drop.
+ *
+ */
+var speed = 40;
+var boost = 5;
+var right = false;
+var left = false;
+var down = false;
+var up = false;
+var spacebar = false;
 // Other global variables   
-var score = 0, totalFrameCount = 0, frameCount = 0, isGameOver = false, timeOut = false, longInPlay = false;
+var score = 0;
+var totalFrameCount = 0;
+var frameCount = 0;
+var isGameOver = false;
+var timeOut = false;
+var longInPlay = false;
 // Variable for progress bar functionality
 var fill = 0;
 // Bomb inventory
-var bombsAvailable = 0, throwBomb = false;
+var bombsAvailable = 0;
+var throwBomb = false;
 /**
  * @abstract Piece classes
  *
@@ -179,7 +217,7 @@ function gameLoop() {
     imageElement.src = "inGame_images/blackCircle.png";
     node.appendChild(imageElement);
     if (down) {
-        n = 5; // Booster
+        n = boost;
         // Bombs inventory
         if (fill < 100) {
             fill += 0.2;
@@ -193,7 +231,7 @@ function gameLoop() {
         }
     }
     else {
-        n = 40;
+        n = speed;
     }
     // Update progress bar
     progressBar.style.width = fill + '%';

@@ -1,19 +1,22 @@
-const canvas = document.getElementById("canvas"),
-  scoreDiv = document.getElementById("score"),
-  startBtn = document.getElementById("startBtn"),
-  ctx = canvas.getContext("2d"),
-  progressBar = document.getElementById("progress-bar"),
-  bombsInventory = document.getElementById("bombs-inventory");
+// HTML elements ---------------------------------------------------
+const canvas = document.getElementById("canvas")
+const scoreDiv = document.getElementById("score")
+const startBtn = document.getElementById("startBtn")
+const ctx = canvas.getContext("2d")
+const progressBar = document.getElementById("progress-bar")
+const bombsInventory = document.getElementById("bombs-inventory")
+//------------------------------------------------------------------
 
-// Block images ------------------------------------
-const greenBlock = new Image(),
-  blueBlock = new Image(),
-  pinkBlock = new Image(),
-  crystalBlock = new Image(),
-  yellowBlock = new Image(),
-  redBlock = new Image(),
-  whiteBlock = new Image(),
-  orangeBlock = new Image();
+
+// Block images ----------------------------------------------------
+const greenBlock = new Image()
+const blueBlock = new Image()
+const pinkBlock = new Image()
+const crystalBlock = new Image()
+const yellowBlock = new Image()
+const redBlock = new Image()
+const whiteBlock = new Image()
+const orangeBlock = new Image()
 
 crystalBlock.src = "inGame_images/crystalBlock.png"
 blueBlock.src = "inGame_images/blueBlock.png"
@@ -23,26 +26,50 @@ redBlock.src = "inGame_images/redBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
 whiteBlock.src = "inGame_images/whiteBlock.png"
 orangeBlock.src = "inGame_images/orangeBlock.png"
-// -------------------------------------------------
+// -----------------------------------------------------------------
 
-// long piece images -------------------------------------
-const tallCrystal = new Image(),
-  flatCrystal = new Image();
+
+// long piece images -----------------------------------------------
+const tallCrystal = new Image()
+const flatCrystal = new Image()
 
 tallCrystal.src = "inGame_images/tallCrystal.png"
 flatCrystal.src = "inGame_images/flatCrystal.png"
-// -------------------------------------------------      
+// -----------------------------------------------------------------
 
-// Bomb image --------------------------------------
+
+// Bomb image ------------------------------------------------------
 const bombImage = new Image()
 
 bombImage.src = "inGame_images/blackCircle.png"
-// -------------------------------------------------
+// -----------------------------------------------------------------
 
-// Variable to register coordinates of blocks removed
-var savedPositions = []
 
-const blockImages = {
+// Particle images -------------------------------------------------
+const bigParticle = new Image()
+const smallParticle = new Image()
+
+bigParticle.src = 'inGame_images/bigParticle.png'
+smallParticle.src = 'inGame_images/smallParticle.png'
+// -----------------------------------------------------------------
+
+
+interface Position {
+  x: number;
+  y: number;
+  frameCount: number;
+}
+
+
+// Save coordinates of blocks removed
+var savedPositions: Position[] = []
+
+
+interface BlockImage {
+  [key: string]: object
+}
+
+const blockImages: BlockImage = {
   green: greenBlock,
   blue: blueBlock,
   crystal: crystalBlock,
@@ -53,21 +80,16 @@ const blockImages = {
   orange: orangeBlock
 }
 
-var colorsInPlay = [
+
+var colorsInPlay: string[] = [
   "yellow",
   "blue",
   "crystal"
 ]
 
-const bigParticle = new Image(),
-  smallParticle = new Image();
-
-bigParticle.src = 'inGame_images/bigParticle.png'
-smallParticle.src = 'inGame_images/smallParticle.png';
-
 
 // matrix[rowIndex][columnIndex]
-var matrix = [
+var matrix: object[][] = [
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}],
@@ -78,38 +100,51 @@ var matrix = [
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}]
-];
+]
 
-var maxRow_index = matrix.length - 1,
-  maxColumn_index = matrix[0].length - 1;
+var maxRow_index = matrix.length - 1
+var maxColumn_index = matrix[0].length - 1
 
 // Pieces arrays
-var pieces = [];
+var pieces: object[] = []
 
-// Movement variables
-const speed = 1,
-  boost = 6;
+/**
+ * @abstract Movement variables
+ * 
+ * `speed` is the rate of frames at which the blocks
+ * drop.
+ * 
+ * The smaller the `boost` number, the fastest
+ * the piece will drop.
+ * 
+ */
+var speed: number = 40
+const boost: number = 5
 
-var right = false,
-  left = false,
-  down = false,
-  up = false,
-  spacebar = false;
+var right: boolean = false
+var left: boolean = false
+var down: boolean = false
+var up: boolean = false
+var spacebar: boolean = false
+
 
 // Other global variables   
-var score = 0,
-  totalFrameCount = 0,
-  frameCount = 0,
-  isGameOver = false,
-  timeOut = false,
-  longInPlay = false;
+var score: number = 0
+var totalFrameCount: number = 0
+var frameCount: number = 0
+var isGameOver: boolean = false
+var timeOut: boolean = false
+var longInPlay: boolean = false
+
 
 // Variable for progress bar functionality
-var fill = 0
+var fill: number = 0
+
 
 // Bomb inventory
-var bombsAvailable = 0,
-  throwBomb = false;
+var bombsAvailable: number = 0
+var throwBomb: boolean = false
+
 
 /**
  * @abstract Piece classes
@@ -244,7 +279,7 @@ function gameLoop() {
   node.appendChild(imageElement)
 
   if (down) {
-    n = 5 // Booster
+    n = boost
 
     // Bombs inventory
     if (fill < 100) {
@@ -261,7 +296,7 @@ function gameLoop() {
     }
   }
   else {
-    n = 40
+    n = speed
   }
 
   // Update progress bar
