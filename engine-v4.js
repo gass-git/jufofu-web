@@ -132,6 +132,48 @@ var Bomb = /** @class */ (function () {
             this.usingColumns = [3],
             this.usingRows = [0];
     }
+    Bomb.explode = function (p) {
+        var bombColumn = p.usingColumns[0], bombRow = p.usingRows[0];
+        // Sorrounding fragments     
+        var sorroundingArea = [
+            { row: bombRow - 1, column: bombColumn - 1 },
+            { row: bombRow - 1, column: bombColumn },
+            { row: bombRow - 1, column: bombColumn + 1 },
+            { row: bombRow, column: bombColumn - 1 },
+            { row: bombRow, column: bombColumn + 1 },
+            { row: bombRow + 1, column: bombColumn - 1 },
+            { row: bombRow + 1, column: bombColumn },
+            { row: bombRow + 1, column: bombColumn + 1 } // bottom-right
+        ];
+        // Destroy all sorrounding pieces that are not crystal
+        pieces = pieces.filter(function (p) {
+            var destroyPiece = false;
+            if (p.type === "block") {
+                var pieceRow = p.usingRows[0], pieceColumn = p.usingColumns[0];
+                for (var _i = 0, sorroundingArea_1 = sorroundingArea; _i < sorroundingArea_1.length; _i++) {
+                    var area = sorroundingArea_1[_i];
+                    if (pieceRow === area.row && pieceColumn === area.column) {
+                        if (p.color !== "crystal") {
+                            destroyPiece = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (destroyPiece === true) {
+                // Save positions for particle animations
+                savedPositions.push({
+                    x: p.x + 9,
+                    y: p.y + 10,
+                    frameCount: 10
+                });
+                return false; // Remove the piece
+            }
+            else {
+                return true; // Keep the piece
+            }
+        });
+    };
     return Bomb;
 }());
 var Long = /** @class */ (function () {
@@ -148,6 +190,64 @@ var Long = /** @class */ (function () {
             this.usingColumns = [3],
             this.usingRows = [0, 1, 2];
     }
+    Long.rotate = function (p) {
+        if (p.isVertical) {
+            /**
+             * Before rotating let's check if the piece can rotate
+             */
+            // Check canvas borders
+            if (p.usingColumns[0] > 0 && p.usingColumns[0] < maxColumn_index) {
+                var M = matrix;
+                var pieceColumn = p.usingColumns[0];
+                var pieceRow = p.usingRows;
+                var pieceMiddleRow = p.usingRows[1];
+                var left_fragment_1 = M[pieceRow[0]][pieceColumn - 1];
+                var left_fragment_2 = M[pieceRow[1]][pieceColumn - 1];
+                var left_fragment_3 = M[pieceRow[2]][pieceColumn - 1];
+                var right_fragment_1 = M[pieceRow[0]][pieceColumn + 1];
+                var right_fragment_2 = M[pieceRow[1]][pieceColumn + 1];
+                var right_fragment_3 = M[pieceRow[2]][pieceColumn + 1];
+                // Rotating area conditions
+                var c = [
+                    !left_fragment_1.isOccupied,
+                    !left_fragment_2.isOccupied,
+                    !left_fragment_3.isOccupied,
+                    !right_fragment_1.isOccupied,
+                    !right_fragment_2.isOccupied,
+                    !right_fragment_3.isOccupied
+                ];
+                // Is rotation possible ?
+                if (c[0] && c[1] && c[2] && c[3] && c[4] && c[5]) {
+                    p.isVertical = false;
+                    p.x -= 40;
+                    p.y += 40;
+                    p.usingColumns = [pieceColumn - 1, pieceColumn, pieceColumn + 1];
+                    p.usingRows = [pieceMiddleRow];
+                    p.image = flatCrystal;
+                }
+            }
+        }
+        else if (!p.isVertical) {
+            /**
+             * Before rotating let's check if the piece can rotate
+             */
+            var M = matrix, pieceColumn = p.usingColumns, pieceRow = p.usingRows[0], topLeft_fragment = M[pieceRow - 1][pieceColumn[0]], topMiddle_fragment = M[pieceRow - 1][pieceColumn[1]], topRight_fragment = M[pieceRow - 1][pieceColumn[2]];
+            // Rotation area conditions    
+            var c = [
+                !topLeft_fragment.isOccupied,
+                !topMiddle_fragment.isOccupied,
+                !topRight_fragment.isOccupied
+            ];
+            if (c[0] && c[1] && c[2]) {
+                p.isVertical = true;
+                p.x += 40;
+                p.y -= 40;
+                p.usingColumns = [pieceColumn[1]];
+                p.usingRows = [pieceRow - 1, pieceRow, pieceRow + 1];
+                p.image = tallCrystal;
+            }
+        }
+    };
     return Long;
 }());
 function init() {
@@ -200,7 +300,7 @@ function gameLoop() {
      *
      */
     if (up && AP.type === "long" && !timeOut) {
-        rotateLong(AP);
+        Long.rotate(AP);
         timeOut = true;
         setTimeout(function () { timeOut = false; }, 120);
     }
@@ -256,7 +356,7 @@ function gameLoop() {
             else {
                 if (AP.type === "bomb") {
                     // Destroy sorrounding color pieces
-                    explode(AP);
+                    Bomb.explode(AP);
                     // Destroy bomb
                     pieces = pieces.filter(function (p) { return p.type !== "bomb"; });
                 }
@@ -693,97 +793,6 @@ function createPiece() {
         }
         else {
             return new Block(randomColor);
-        }
-    }
-}
-function explode(p) {
-    var bombColumn = p.usingColumns[0], bombRow = p.usingRows[0];
-    // Sorrounding fragments     
-    var sorroundingArea = [
-        { row: bombRow - 1, column: bombColumn - 1 },
-        { row: bombRow - 1, column: bombColumn },
-        { row: bombRow - 1, column: bombColumn + 1 },
-        { row: bombRow, column: bombColumn - 1 },
-        { row: bombRow, column: bombColumn + 1 },
-        { row: bombRow + 1, column: bombColumn - 1 },
-        { row: bombRow + 1, column: bombColumn },
-        { row: bombRow + 1, column: bombColumn + 1 } // bottom-right
-    ];
-    // Destroy all sorrounding pieces that are not crystal
-    pieces = pieces.filter(function (p) {
-        var destroyPiece = false;
-        if (p.type === "block") {
-            var pieceRow = p.usingRows[0], pieceColumn = p.usingColumns[0];
-            for (var _i = 0, sorroundingArea_1 = sorroundingArea; _i < sorroundingArea_1.length; _i++) {
-                var area = sorroundingArea_1[_i];
-                if (pieceRow === area.row && pieceColumn === area.column) {
-                    if (p.color !== "crystal") {
-                        destroyPiece = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (destroyPiece === true) {
-            // Save positions for particle animations
-            savedPositions.push({
-                x: p.x + 9,
-                y: p.y + 10,
-                frameCount: 10
-            });
-            return false; // Remove the piece
-        }
-        else {
-            return true; // Keep the piece
-        }
-    });
-}
-function rotateLong(p) {
-    if (p.isVertical) {
-        /**
-         * Before rotating let's check if the piece can rotate
-         */
-        // Check canvas borders
-        if (p.usingColumns[0] > 0 && p.usingColumns < maxColumn_index) {
-            var M = matrix, pieceColumn = p.usingColumns[0], pieceRow = p.usingRows, pieceMiddleRow = p.usingRows[1], left_fragment_1 = M[pieceRow[0]][pieceColumn - 1], left_fragment_2 = M[pieceRow[1]][pieceColumn - 1], left_fragment_3 = M[pieceRow[2]][pieceColumn - 1], right_fragment_1 = M[pieceRow[0]][pieceColumn + 1], right_fragment_2 = M[pieceRow[1]][pieceColumn + 1], right_fragment_3 = M[pieceRow[2]][pieceColumn + 1];
-            // Rotating area conditions
-            var c = [
-                !left_fragment_1.isOccupied,
-                !left_fragment_2.isOccupied,
-                !left_fragment_3.isOccupied,
-                !right_fragment_1.isOccupied,
-                !right_fragment_2.isOccupied,
-                !right_fragment_3.isOccupied
-            ];
-            // Is rotation possible ?
-            if (c[0] && c[1] && c[2] && c[3] && c[4] && c[5]) {
-                p.isVertical = false;
-                p.x -= 40;
-                p.y += 40;
-                p.usingColumns = [pieceColumn - 1, pieceColumn, pieceColumn + 1];
-                p.usingRows = [pieceMiddleRow];
-                p.image = flatCrystal;
-            }
-        }
-    }
-    else if (!p.isVertical) {
-        /**
-         * Before rotating let's check if the piece can rotate
-         */
-        var M = matrix, pieceColumn = p.usingColumns, pieceRow = p.usingRows[0], topLeft_fragment = M[pieceRow - 1][pieceColumn[0]], topMiddle_fragment = M[pieceRow - 1][pieceColumn[1]], topRight_fragment = M[pieceRow - 1][pieceColumn[2]];
-        // Rotation area conditions    
-        var c = [
-            !topLeft_fragment.isOccupied,
-            !topMiddle_fragment.isOccupied,
-            !topRight_fragment.isOccupied
-        ];
-        if (c[0] && c[1] && c[2]) {
-            p.isVertical = true;
-            p.x += 40;
-            p.y -= 40;
-            p.usingColumns = [pieceColumn[1]];
-            p.usingRows = [pieceRow - 1, pieceRow, pieceRow + 1];
-            p.image = tallCrystal;
         }
     }
 }
