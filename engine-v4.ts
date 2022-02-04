@@ -1,10 +1,10 @@
 // HTML elements ---------------------------------------------------
-const canvas = document.getElementById("canvas")
-const scoreDiv = document.getElementById("score")
-const startBtn = document.getElementById("startBtn")
-const ctx = canvas.getContext("2d")
-const progressBar = document.getElementById("progress-bar")
-const bombsInventory = document.getElementById("bombs-inventory")
+const canvas: any = document.getElementById("canvas")!
+const scoreDiv = document.getElementById("score")!
+const startBtn = document.getElementById("startBtn")!
+const ctx = canvas.getContext("2d")!
+const progressBar = document.getElementById("progress-bar")!
+const bombsInventory = document.getElementById("bombs-inventory")!
 //------------------------------------------------------------------
 
 
@@ -105,9 +105,6 @@ var matrix: object[][] = [
 var maxRow_index = matrix.length - 1
 var maxColumn_index = matrix[0].length - 1
 
-// Pieces arrays
-var pieces: object[] = []
-
 /**
  * @abstract Movement variables
  * 
@@ -145,6 +142,9 @@ var fill: number = 0
 var bombsAvailable: number = 0
 var throwBomb: boolean = false
 
+
+// Pieces arrays
+var pieces: any = []
 
 /**
  * @abstract Piece classes
@@ -214,7 +214,7 @@ class Bomb {
     ]
 
     // Destroy all sorrounding pieces that are not crystal
-    pieces = pieces.filter((p: any) => {
+    pieces = pieces.filter(p => {
 
       let destroyPiece = false
 
@@ -373,7 +373,7 @@ function gameLoop() {
   frameCount++
 
   // Update score
-  scoreDiv.innerText = score
+  scoreDiv.innerText = score.toString()
 
   /**
    * Add new colors to the game after a certain
@@ -399,13 +399,13 @@ function gameLoop() {
 
   // Create the first piece
   if (pieces.length === 0) {
-    pieces.push(createPiece());
+    pieces = [...pieces, createPiece()]
   }
 
-  var AP // Active piece
+  var AP: any; // Active piece
 
   // Draw all the pieces and initialize the active piece
-  pieces.forEach(p => {
+  pieces.forEach((p: any) => {
     drawPiece(p.image, p.x, p.y)
     p.isActive ? AP = p : null
   })
@@ -439,7 +439,7 @@ function gameLoop() {
    * VERTICAL MOVEMENT
    * 
    */
-  let n
+  let n: number;
 
   // Show available bombs 
   var node = document.createElement("span")
@@ -568,7 +568,7 @@ function gameLoop() {
    */
   if (left && !timeOut) {
 
-    let left_fragment
+    let left_fragment: any;
 
     if (AP.type === "long") {
 
@@ -623,7 +623,7 @@ function gameLoop() {
 
   if (right && !timeOut) {
 
-    let right_fragment
+    let right_fragment: any;
 
     if (AP.type === "long") {
 
@@ -689,7 +689,7 @@ function gameLoop() {
    * @abstract Matching rows
    * 
    */
-  let savedRows = []
+  let savedRows: number[] = []
 
   matrix.forEach((rowFragments, rowIndex) => {
 
@@ -816,12 +816,12 @@ function gameLoop() {
   }
 
   // Populate with the position of each piece
-  pieces.forEach(p => {
+  pieces.forEach((p: any) => {
 
     p['usingColumns'].forEach((column) => {
       p['usingRows'].forEach((row) => {
 
-        let fragment = matrix[row][column]
+        let fragment: any = matrix[row][column]
 
         fragment.type = p.type
         fragment.color = p.color
@@ -832,11 +832,8 @@ function gameLoop() {
         if (p.type === "long") {
           p.isVertical ? fragment.piecePosition = "vertical" : null
         }
-
       })
     })
-
-
   })
 
   /** 
@@ -844,14 +841,12 @@ function gameLoop() {
      * above the lines been removed.
      * 
      */
-  pieces.forEach(p => {
+  pieces.forEach((p: any) => {
 
     let lowestAvailableRow = GET_lowestAvailableRow(p)
 
     switch (p.type) {
-
       case "block":
-
         if (!p.isActive) {
 
           if (p.usingRows[0] < lowestAvailableRow) {
@@ -873,12 +868,10 @@ function gameLoop() {
               p.isRearranging = false
             }
           }
-
         }
         break
 
       case "long":
-
         if (!p.isActive && p.isVertical) {
 
           if (p.usingRows[2] < lowestAvailableRow) {
@@ -926,26 +919,20 @@ function gameLoop() {
               p.isRearranging = false
             }
           }
-
         }
-
         break
-
     }
-
-
-
   })
 
   // If there is a parked piece in row index "0" is game over
-  for (const fragment of matrix[0]) {
+  let fragment: any;
 
+  for (fragment of matrix[0]) {
     if (fragment.isOccupied && fragment.pieceIsParked) {
       isGameOver = true
       alert('Game over\nScore: ' + score)
       break
     }
-
   }
 
   /**
@@ -1042,11 +1029,11 @@ function GET_lowestAvailableRow(piece) {
 function createPiece() {
 
   if (throwBomb) {
-
     throwBomb = false
     bombsAvailable -= 1
     return new Bomb()
-  } else {
+  }
+  else {
 
     let rand = Math.random()
 

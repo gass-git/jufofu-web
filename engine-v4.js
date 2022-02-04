@@ -1,3 +1,12 @@
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 // HTML elements ---------------------------------------------------
 var canvas = document.getElementById("canvas");
 var scoreDiv = document.getElementById("score");
@@ -71,8 +80,6 @@ var matrix = [
 ];
 var maxRow_index = matrix.length - 1;
 var maxColumn_index = matrix[0].length - 1;
-// Pieces arrays
-var pieces = [];
 /**
  * @abstract Movement variables
  *
@@ -102,6 +109,8 @@ var fill = 0;
 // Bomb inventory
 var bombsAvailable = 0;
 var throwBomb = false;
+// Pieces arrays
+var pieces = [];
 /**
  * @abstract Piece classes
  *
@@ -259,7 +268,7 @@ function gameLoop() {
     totalFrameCount++;
     frameCount++;
     // Update score
-    scoreDiv.innerText = score;
+    scoreDiv.innerText = score.toString();
     /**
      * Add new colors to the game after a certain
      * number of frames.
@@ -279,7 +288,7 @@ function gameLoop() {
     }
     // Create the first piece
     if (pieces.length === 0) {
-        pieces.push(createPiece());
+        pieces = __spreadArray(__spreadArray([], pieces, true), [createPiece()], false);
     }
     var AP; // Active piece
     // Draw all the pieces and initialize the active piece
@@ -683,8 +692,9 @@ function gameLoop() {
         }
     });
     // If there is a parked piece in row index "0" is game over
+    var fragment;
     for (var _i = 0, _a = matrix[0]; _i < _a.length; _i++) {
-        var fragment = _a[_i];
+        fragment = _a[_i];
         if (fragment.isOccupied && fragment.pieceIsParked) {
             isGameOver = true;
             alert('Game over\nScore: ' + score);
