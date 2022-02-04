@@ -125,6 +125,7 @@ var spacebar: boolean = false
 
 // Other global variables   
 var score: number = 0
+var scoreMultiplayer: number = 1
 var totalFrameCount: number = 0
 var frameCount: number = 0
 var isGameOver: boolean = false
@@ -368,6 +369,46 @@ function init() {
 
 function gameLoop() {
 
+  /**
+   * @abstract
+   * 
+   * - Add speed and increase score reward as game evolves and 
+   * 
+   * - Add new colors to the game after a certain
+   * number of frames.
+   */
+  switch (totalFrameCount) {
+    case 1000:
+      colorsInPlay.push("pink")
+      break
+
+    case 2000:
+      speed = 35
+      scoreMultiplayer = 2
+      colorsInPlay.push("white")
+      break
+
+    case 4000:
+      speed = 30
+      scoreMultiplayer = 3
+      break
+
+    case 7000:
+      speed = 25
+      scoreMultiplayer = 4
+      colorsInPlay.push("orange")
+      break
+
+    case 10000:
+      speed = 20
+      scoreMultiplayer = 5
+      break
+
+    default:
+      break
+  }
+
+
   // Clean the canvas and count the frames
   ctx.clearRect(0, 0, canvas.width, canvas.height)
   totalFrameCount++
@@ -375,28 +416,6 @@ function gameLoop() {
 
   // Update score
   scoreDiv.innerText = score.toString()
-
-  /**
-   * Add new colors to the game after a certain
-   * number of frames.
-   */
-  switch (totalFrameCount) {
-
-    case 1000:
-      colorsInPlay.push("pink")
-      break
-
-    case 2000:
-      colorsInPlay.push("white")
-      break
-
-    case 5000:
-      colorsInPlay.push("orange")
-      break
-
-    default:
-      break
-  }
 
   // Create the first piece
   if (pieces.length === 0) {
@@ -416,7 +435,6 @@ function gameLoop() {
    * 
    */
   if (spacebar && !throwBomb && bombsAvailable > 0) {
-
     throwBomb = true
     bombsInventory.removeChild(bombsInventory.childNodes[bombsAvailable - 1])
   }
@@ -459,7 +477,7 @@ function gameLoop() {
       fill = 0
 
       // Maximum capacity of bombs in inventory
-      bombsAvailable <= 8 ? bombsAvailable++ : null
+      bombsAvailable < 6 ? bombsAvailable++ : null
 
       // Append new bomb to inventory DIV
       bombsInventory.appendChild(node)
@@ -741,7 +759,7 @@ function gameLoop() {
 
     if (c[0] || c[1] || c[2] || c[3] || c[4]) {
 
-      pieces = pieces.filter(p => {
+      pieces = pieces.filter((p: any) => {
         if (p.usingRows[0] === rowIndex) {
           return false // Remove
         }
@@ -750,7 +768,7 @@ function gameLoop() {
         }
       })
 
-      score += 10 * (maxRow_index + 1)
+      score += 60 * scoreMultiplayer
     }
 
     // Register the row if there is a long in a matching row
@@ -764,11 +782,11 @@ function gameLoop() {
      */
     if (savedRows.length === 3) {
 
-      score += 10 * 3 * (maxRow_index + 1)
+      score += 70 * scoreMultiplayer
 
       for (const row of savedRows)
 
-        pieces = pieces.filter(p => {
+        pieces = pieces.filter((p: any) => {
           if (p.usingRows[0] === row) {
             return false // Remove
           }
@@ -819,8 +837,8 @@ function gameLoop() {
   // Populate with the position of each piece
   pieces.forEach((p: any) => {
 
-    p['usingColumns'].forEach((column: number) => {
-      p['usingRows'].forEach((row: number) => {
+    p.usingColumns.forEach((column: number) => {
+      p.usingRows.forEach((row: number) => {
 
         let fragment: any = matrix[row][column]
 
@@ -828,7 +846,9 @@ function gameLoop() {
         fragment.color = p.color
         fragment.isOccupied = true
 
-        p.isActive ? null : fragment.pieceIsParked = true
+        if (!p.isActive) {
+          fragment.pieceIsParked = true
+        }
 
         if (p.type === "long") {
           p.isVertical ? fragment.piecePosition = "vertical" : null
