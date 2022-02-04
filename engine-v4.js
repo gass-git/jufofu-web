@@ -43,11 +43,9 @@ flatCrystal.src = "inGame_images/flatCrystal.png";
 var bombImage = new Image();
 bombImage.src = "inGame_images/blackCircle.png";
 // -----------------------------------------------------------------
-// Particle images -------------------------------------------------
-var bigParticle = new Image();
-var smallParticle = new Image();
-bigParticle.src = 'inGame_images/bigParticle.png';
-smallParticle.src = 'inGame_images/smallParticle.png';
+// Particle image -------------------------------------------------
+var particle = new Image();
+particle.src = 'inGame_images/particle.png';
 // Save coordinates of blocks removed
 var savedPositions = [];
 var blockImages = {
@@ -174,7 +172,7 @@ var Bomb = /** @class */ (function () {
                 savedPositions.push({
                     x: p.x + 9,
                     y: p.y + 10,
-                    frameCount: 10
+                    frameCount: 5
                 });
                 return false; // Remove the piece
             }
@@ -701,32 +699,23 @@ function gameLoop() {
             break;
         }
     }
-    /**
-     * @abstract
-     *
-     * Animation effects
-     *
-     */
+    // Animation effects: sparkles on bomb explosion
     if (savedPositions.length > 0) {
         savedPositions.forEach(function (pos, i) {
-            if (pos.frameCount > 4) {
-                drawPiece(bigParticle, pos.x, pos.y);
-                savedPositions[i].frameCount -= 1;
-            }
-            if (pos.pendingAnimations <= 4) {
-                drawPiece(smallParticle, pos.x, pos.y);
-                savedPositions[i].frameCount -= 1;
-            }
+            drawPiece(particle, pos.x, pos.y);
+            savedPositions[i].frameCount -= 1;
         });
     }
     savedPositions = savedPositions.filter(function (pos) { return pos.frameCount > 0; });
     isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop);
 }
 function GET_lowestAvailableRow(piece) {
-    var resultRow, numbers = [];
+    var resultRow;
+    var numbers = [];
     // Loop through all the columns that the piece is using
     piece['usingColumns'].forEach(function (column) {
         /**
+         * @abstract
          * The initial row of the loop will be the lower
          * row been used by the piece + 1
          *
@@ -763,9 +752,10 @@ function GET_lowestAvailableRow(piece) {
         }
     });
     /**
-    * In case the numbers array is empty, the last available
-    * row will equal maxRow_index.
-    */
+     * @abstract
+     * In case the numbers array is empty, the last
+     * available row will equal maxRow_index.
+     */
     numbers.length > 0 ? resultRow = Math.min.apply(Math, numbers) - 1 : resultRow = maxRow_index;
     return resultRow;
 }

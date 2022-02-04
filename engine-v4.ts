@@ -45,12 +45,10 @@ bombImage.src = "inGame_images/blackCircle.png"
 // -----------------------------------------------------------------
 
 
-// Particle images -------------------------------------------------
-const bigParticle = new Image()
-const smallParticle = new Image()
+// Particle image -------------------------------------------------
+const particle = new Image()
 
-bigParticle.src = 'inGame_images/bigParticle.png'
-smallParticle.src = 'inGame_images/smallParticle.png'
+particle.src = 'inGame_images/particle.png'
 // -----------------------------------------------------------------
 
 
@@ -241,7 +239,7 @@ class Bomb {
         savedPositions.push({
           x: p.x + 9,
           y: p.y + 10,
-          frameCount: 10
+          frameCount: 5
         })
 
         return false // Remove the piece
@@ -249,6 +247,9 @@ class Bomb {
       else {
         return true // Keep the piece
       }
+
+
+
 
     })
 
@@ -704,7 +705,7 @@ function gameLoop() {
       white: 0
     }
 
-    rowFragments.forEach((fragment) => { // Loop through row columns
+    rowFragments.forEach((fragment: any) => { // Loop through row columns
 
       if (fragment.isOccupied && fragment.pieceIsParked) {
 
@@ -818,8 +819,8 @@ function gameLoop() {
   // Populate with the position of each piece
   pieces.forEach((p: any) => {
 
-    p['usingColumns'].forEach((column) => {
-      p['usingRows'].forEach((row) => {
+    p['usingColumns'].forEach((column: number) => {
+      p['usingRows'].forEach((row: number) => {
 
         let fragment: any = matrix[row][column]
 
@@ -935,44 +936,30 @@ function gameLoop() {
     }
   }
 
-  /**
-   * @abstract
-   * 
-   * Animation effects
-   * 
-   */
+
+  // Animation effects: sparkles on bomb explosion
   if (savedPositions.length > 0) {
-
     savedPositions.forEach((pos, i) => {
-
-      if (pos.frameCount > 4) {
-        drawPiece(bigParticle, pos.x, pos.y)
-        savedPositions[i].frameCount -= 1
-      }
-
-
-      if (pos.pendingAnimations <= 4) {
-        drawPiece(smallParticle, pos.x, pos.y)
-        savedPositions[i].frameCount -= 1
-      }
+      drawPiece(particle, pos.x, pos.y)
+      savedPositions[i].frameCount -= 1
     })
   }
 
   savedPositions = savedPositions.filter(pos => pos.frameCount > 0)
 
-
   isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop)
 }
 
-function GET_lowestAvailableRow(piece) {
+function GET_lowestAvailableRow(piece: any) {
 
-  let resultRow,
-    numbers = [];
+  let resultRow
+  let numbers: number[] = []
 
   // Loop through all the columns that the piece is using
-  piece['usingColumns'].forEach(column => {
+  piece['usingColumns'].forEach((column: number) => {
 
     /**
+     * @abstract
      * The initial row of the loop will be the lower  
      * row been used by the piece + 1
      * 
@@ -1008,7 +995,7 @@ function GET_lowestAvailableRow(piece) {
     // Loop through all the rows that are below the piece
     for (let row = initialRow; row <= maxRow_index; row++) {
 
-      let fragment = matrix[row][column]
+      let fragment: any = matrix[row][column]
 
       if (fragment.isOccupied && fragment.pieceIsParked) {
         numbers.push(row) // Push row number if fragment is been occupied by an inactive piece
@@ -1016,13 +1003,12 @@ function GET_lowestAvailableRow(piece) {
     }
   })
 
-
-  /**
-  * In case the numbers array is empty, the last available
-  * row will equal maxRow_index.
-  */
+  /** 
+   * @abstract
+   * In case the numbers array is empty, the last 
+   * available row will equal maxRow_index.
+   */
   numbers.length > 0 ? resultRow = Math.min(...numbers) - 1 : resultRow = maxRow_index
-
   return resultRow
 }
 
@@ -1078,7 +1064,7 @@ function drawPiece(image: object, x: number, y: number) {
   ctx.drawImage(image, x, y)
 }
 
-function handleKeyDown(e) {
+function handleKeyDown(e: { key: string, keyCode: number }) {
   if (e.key === "Right" || e.key === "ArrowRight") {
     right = true
   }
@@ -1095,7 +1081,7 @@ function handleKeyDown(e) {
     spacebar = true
   }
 }
-function handleKeyUp(e) {
+function handleKeyUp(e: { key: string, keyCode: number }) {
   if (e.key === "Right" || e.key === "ArrowRight") {
     right = false
   }
@@ -1123,7 +1109,7 @@ startBtn.addEventListener('click', () => {
     location.reload()
   }
 
-  document.activeElement.blur()
+  (document.activeElement as HTMLElement).blur();
 })
 
 
