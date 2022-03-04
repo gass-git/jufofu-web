@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="styles.css">
+  <script src="engine-v4.js" defer></script>
+  <script src="instructions.js" defer></script>
+  <title>Jufofa 0.9 | on development</title>
+</head>
+
+<body id="body">
+
+  <!-- Show this message if its a touch device -->
+  <div id="message" style="display:none">
+    This game does not work on touch screen devices.
+  </div>
+
+  <div id="bombs-inventory"></div>
+
+  <div class="bar-wrapper">
+    <div class="bar">
+      <span id="progress-bar" class="bar-fill" style="width: 0%"></span>
+    </div>
+  </div>
+
+  <div class="canvas-wrapper" id="game-wrapper" style="display:block">
+
+    <div id="score" style="display:block">0</div>
+
+    <!-- IMPORTANT: width and height must be multiples of 2 -->
+    <canvas id="canvas" width="240" height="400"></canvas>
+
+    <!-- Buttons -->
+    <button id="startBtn" class="btn">Start Game</button>
+
+    <button id="instructionsBtn" class="btn">How to Play?</button>
+
+    <div class="tooltiptext" id="tooltip" style="display: none">
+      <span>It's not possible to read the instructions during a game.</span>
+    </div>
+
+    <!-- Instructions -->
+    <div id="instructions">
+
+
+
+      <center>Make as many lines of the same color as you can.</center>
+      <br>
+      <center>
+        <h3 style="text-decoration: underline">Controls</h3>
+      </center>
+      <br>
+      <table style="width:100%">
+        <tr>
+          <td style="text-align: center"><img src="instructions_images/leftArrow.png"> <img
+              src="instructions_images/rightArrow.png"></td>
+          <td>Side movement</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><img src="instructions_images/upArrow.png"></td>
+          <td>Rotate piece</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><img src="instructions_images/downArrow.png"></td>
+          <td>Down boost</td>
+        </tr>
+        <tr>
+          <td style="text-align: center"><img src="instructions_images/spaceBar.png"></td>
+          <td>Throw bomb</td>
+        </tr>
+      </table>
+
+      <br>
+      <center>
+        <h3 style="text-decoration: underline">Bomb & Crystals</h3>
+      </center>
+      <br>
+
+      <center><b>Explosions</b> destroy all sorrounding pieces except crystals.</center>
+      <br>
+      <center><b>Crystal pieces</b> are valid for any color.</center>
+
+
+
+    </div>
+
+  </div>
+  <footer>
+    <a href="https://github.com/gass-git/jufofa" target="_blank">Jufofa</a> 2022 - Built from scratch by
+    <a href="https://github.com/gass-git" target="_blank">Gass</a> - Using <a
+      href="https://opengameart.org/content/puzzle-game-art" target="_blank">Kenney UI pack</a> and <a
+      href="https://www.svgbackgrounds.com/" target="_blank">SVG backgrounds</a>
+  </footer>
+</body>
+<script>
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    const score = document.getElementById('score'),
+      canvasWrapper = document.getElementById('game-wrapper'),
+      message = document.getElementById('message');
+
+    message.style.display = "block";
+    score.style.display = "none";
+    canvasWrapper.style.display = "none";
+  }
+</script>
+
+</html>
