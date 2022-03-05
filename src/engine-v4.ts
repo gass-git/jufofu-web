@@ -1,10 +1,10 @@
 // HTML elements ---------------------------------------------------
-const canvas: any = document.getElementById("canvas")!
-const scoreDiv = document.getElementById("score")!
-const startBtn = document.getElementById("startBtn")!
-const ctx = canvas.getContext("2d")!
-const progressBar = document.getElementById("progress-bar")!
-const bombsInventory = document.getElementById("bombs-inventory")!
+const canvas: any = document.getElementById("canvas") as HTMLDivElement
+const scoreDiv = document.getElementById("score") as HTMLDivElement
+const startBtn = document.getElementById("startBtn") as HTMLDivElement
+const ctx = canvas.getContext("2d") as HTMLElement
+const progressBar = document.getElementById("progress-bar") as HTMLDivElement
+const bombsInventory = document.getElementById("bombs-inventory") as HTMLDivElement
 //------------------------------------------------------------------
 
 // Block images ----------------------------------------------------
