@@ -10,6 +10,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Bomb from './classes/bomb.js';
 import Block from './classes/block.js';
 import Long from './classes/long.js';
+import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js';
+document.addEventListener("keydown", handleKeyDown, false);
+document.addEventListener("keyup", handleKeyUp, false);
 // HTML elements ---------------------------------------------------
 var canvas = document.getElementById("canvas");
 var scoreDiv = document.getElementById("score");
@@ -35,16 +38,6 @@ redBlock.src = "inGame_images/redBlock.png";
 pinkBlock.src = "inGame_images/pinkBlock.png";
 whiteBlock.src = "inGame_images/whiteBlock.png";
 orangeBlock.src = "inGame_images/orangeBlock.png";
-// -----------------------------------------------------------------
-// long piece images -----------------------------------------------
-var tallCrystal = new Image();
-var flatCrystal = new Image();
-tallCrystal.src = "inGame_images/tallCrystal.png";
-flatCrystal.src = "inGame_images/flatCrystal.png";
-// -----------------------------------------------------------------
-// Bomb image ------------------------------------------------------
-var bombImage = new Image();
-bombImage.src = "inGame_images/blackCircle.png";
 // -----------------------------------------------------------------
 // Particle image -------------------------------------------------
 var particle = new Image();
@@ -82,7 +75,7 @@ var matrix = [
 var maxRow_index = matrix.length - 1;
 var maxColumn_index = matrix[0].length - 1;
 /**
- * @abstract Movement variables
+ * Movement variables
  *
  * `speed` is the rate of frames at which the blocks
  * drop.
@@ -93,11 +86,6 @@ var maxColumn_index = matrix[0].length - 1;
  */
 var speed = 40;
 var boost = 5;
-var right = false;
-var left = false;
-var down = false;
-var up = false;
-var spacebar = false;
 // Other global variables   
 var score = 0;
 var scoreMultiplayer = 1;
@@ -116,16 +104,11 @@ var pieces = [];
 export function setPieces(newArray) {
     pieces = newArray;
 }
-/**
- * Piece classes
- */
 function init() {
     window.requestAnimationFrame(gameLoop);
 }
 function gameLoop() {
     /**
-     * @abstract
-     *
      * - Add speed and increase score reward as game evolves and
      *
      * - Add new colors to the game after a certain
@@ -182,8 +165,7 @@ function gameLoop() {
         bombsInventory.removeChild(bombsInventory.childNodes[bombsAvailable - 1]);
     }
     /**
-     * @abstract Rotation
-     *
+     * Rotation
      */
     if (up && AP.type === "long" && !timeOut) {
         Long.rotate(AP, matrix, maxColumn_index);
@@ -191,10 +173,7 @@ function gameLoop() {
         setTimeout(function () { timeOut = false; }, 120);
     }
     /**
-     * @abstract
-     *
      * VERTICAL MOVEMENT
-     *
      */
     var n;
     // Show available bombs 
@@ -288,10 +267,7 @@ function gameLoop() {
         frameCount = 0;
     }
     /**
-     * @abstract
-     *
      * HORIZONTAL MOVEMENT
-     *
      */
     if (left && !timeOut) {
         var left_fragment = void 0;
@@ -377,8 +353,7 @@ function gameLoop() {
         setTimeout(function () { timeOut = false; }, 120);
     }
     /**
-     * @abstract Matching rows
-     *
+     * Matching rows
      */
     var savedRows = [];
     matrix.forEach(function (rowFragments, rowIndex) {
@@ -453,11 +428,8 @@ function gameLoop() {
         }
     });
     /**
-     * @abstract Update matrix
-     *
      * Start with a clean matrix and then fill it
      * with the position of each piece.
-     *
      */
     matrix = [
         [{}, {}, {}, {}, {}, {}],
@@ -504,10 +476,10 @@ function gameLoop() {
         });
     });
     /**
-       * If pieces have been filtered out, re-arrange pieces position
-       * above the lines been removed.
-       *
-       */
+     * If pieces have been filtered out, re-arrange pieces position
+     * above the lines been removed.
+     *
+     */
     pieces.forEach(function (p) {
         var lowestAvailableRow = GET_lowestAvailableRow(p);
         switch (p.type) {
@@ -596,7 +568,6 @@ function GET_lowestAvailableRow(piece) {
     // Loop through all the columns that the piece is using
     piece['usingColumns'].forEach(function (column) {
         /**
-         * @abstract
          * The initial row of the loop will be the lower
          * row been used by the piece + 1
          *
@@ -605,7 +576,6 @@ function GET_lowestAvailableRow(piece) {
          *
          * The initial row will switch depending of the piece
          * type.
-         *
          */
         var initialRow;
         switch (piece.type) {
@@ -633,7 +603,6 @@ function GET_lowestAvailableRow(piece) {
         }
     });
     /**
-     * @abstract
      * In case the numbers array is empty, the last
      * available row will equal maxRow_index.
      */
@@ -670,52 +639,16 @@ function createPiece() {
             return new Long();
         }
         else if (rand < 0.25) {
-            return new Block('crystal');
+            return new Block('crystal', blockImages);
         }
         else {
-            return new Block(randomColor);
+            return new Block(randomColor, blockImages);
         }
     }
 }
-document.addEventListener("keydown", handleKeyDown, false);
-document.addEventListener("keyup", handleKeyUp, false);
 function drawPiece(image, x, y) {
     // @ts-ignore: Unreachable code error
     ctx.drawImage(image, x, y);
-}
-function handleKeyDown(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        right = true;
-    }
-    if (e.key === "Left" || e.key === "ArrowLeft") {
-        left = true;
-    }
-    if (e.key === "Down" || e.key === "ArrowDown") {
-        down = true;
-    }
-    if (e.key === "Up" || e.key === "ArrowUp") {
-        up = true;
-    }
-    if (e.keyCode === 32) {
-        spacebar = true;
-    }
-}
-function handleKeyUp(e) {
-    if (e.key === "Right" || e.key === "ArrowRight") {
-        right = false;
-    }
-    if (e.key === "Left" || e.key === "ArrowLeft") {
-        left = false;
-    }
-    if (e.key === "Down" || e.key === "ArrowDown") {
-        down = false;
-    }
-    if (e.key === "Up" || e.key === "ArrowUp") {
-        up = false;
-    }
-    if (e.keyCode === 32) {
-        spacebar = false;
-    }
 }
 startBtn.addEventListener('click', function () {
     if (startBtn.innerText === 'Start Game') {

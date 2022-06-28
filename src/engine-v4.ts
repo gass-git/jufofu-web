@@ -1,6 +1,10 @@
 import Bomb from './classes/bomb.js'
 import Block from './classes/block.js'
 import Long from './classes/long.js'
+import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js'
+
+document.addEventListener("keydown", handleKeyDown, false)
+document.addEventListener("keyup", handleKeyUp, false)
 
 // HTML elements ---------------------------------------------------
 const canvas: any = document.getElementById("canvas") as HTMLDivElement
@@ -29,20 +33,6 @@ redBlock.src = "inGame_images/redBlock.png"
 pinkBlock.src = "inGame_images/pinkBlock.png"
 whiteBlock.src = "inGame_images/whiteBlock.png"
 orangeBlock.src = "inGame_images/orangeBlock.png"
-// -----------------------------------------------------------------
-
-// long piece images -----------------------------------------------
-const tallCrystal = new Image()
-const flatCrystal = new Image()
-
-tallCrystal.src = "inGame_images/tallCrystal.png"
-flatCrystal.src = "inGame_images/flatCrystal.png"
-// -----------------------------------------------------------------
-
-// Bomb image ------------------------------------------------------
-const bombImage = new Image()
-
-bombImage.src = "inGame_images/blackCircle.png"
 // -----------------------------------------------------------------
 
 // Particle image -------------------------------------------------
@@ -101,7 +91,7 @@ var maxRow_index = matrix.length - 1
 var maxColumn_index = matrix[0].length - 1
 
 /**
- * @abstract Movement variables
+ * Movement variables
  * 
  * `speed` is the rate of frames at which the blocks
  * drop.
@@ -112,13 +102,6 @@ var maxColumn_index = matrix[0].length - 1
  */
 var speed: number = 40
 const boost: number = 5
-
-var right: boolean = false
-var left: boolean = false
-var down: boolean = false
-var up: boolean = false
-var spacebar: boolean = false
-
 
 // Other global variables   
 var score: number = 0
@@ -153,8 +136,6 @@ function init() {
 function gameLoop() {
 
   /**
-   * @abstract
-   * 
    * - Add speed and increase score reward as game evolves and 
    * 
    * - Add new colors to the game after a certain
@@ -223,10 +204,8 @@ function gameLoop() {
     bombsInventory.removeChild(bombsInventory.childNodes[bombsAvailable - 1])
   }
 
-
   /**
-   * @abstract Rotation
-   * 
+   * Rotation
    */
   if (up && AP.type === "long" && !timeOut) {
 
@@ -235,12 +214,8 @@ function gameLoop() {
     setTimeout(() => { timeOut = false }, 120)
   }
 
-
   /** 
-   * @abstract 
-   * 
    * VERTICAL MOVEMENT
-   * 
    */
   let n: number;
 
@@ -273,7 +248,6 @@ function gameLoop() {
 
   // Update progress bar
   progressBar.style.width = fill + '%'
-
 
   if (frameCount > n) {
 
@@ -362,12 +336,8 @@ function gameLoop() {
     frameCount = 0
   }
 
-
   /**
-   * @abstract
-   * 
    * HORIZONTAL MOVEMENT
-   * 
    */
   if (left && !timeOut) {
 
@@ -489,8 +459,7 @@ function gameLoop() {
 
 
   /**
-   * @abstract Matching rows
-   * 
+   * Matching rows
    */
   let savedRows: number[] = []
 
@@ -584,11 +553,8 @@ function gameLoop() {
 
 
   /**
-   * @abstract Update matrix
-   * 
    * Start with a clean matrix and then fill it
    * with the position of each piece.
-   * 
    */
   matrix = [
     [{}, {}, {}, {}, {}, {}],
@@ -642,10 +608,10 @@ function gameLoop() {
   })
 
   /** 
-     * If pieces have been filtered out, re-arrange pieces position
-     * above the lines been removed.
-     * 
-     */
+   * If pieces have been filtered out, re-arrange pieces position
+   * above the lines been removed.
+   * 
+   */
   pieces.forEach((p: any) => {
 
     let lowestAvailableRow = GET_lowestAvailableRow(p)
@@ -763,7 +729,6 @@ function GET_lowestAvailableRow(piece: any) {
   piece['usingColumns'].forEach((column: number) => {
 
     /**
-     * @abstract
      * The initial row of the loop will be the lower  
      * row been used by the piece + 1
      * 
@@ -772,7 +737,6 @@ function GET_lowestAvailableRow(piece: any) {
      * 
      * The initial row will switch depending of the piece
      * type.
-     * 
      */
     let initialRow
 
@@ -808,7 +772,6 @@ function GET_lowestAvailableRow(piece: any) {
   })
 
   /** 
-   * @abstract
    * In case the numbers array is empty, the last 
    * available row will equal maxRow_index.
    */
@@ -852,56 +815,18 @@ function createPiece() {
       return new Long()
     }
     else if (rand < 0.25) {
-      return new Block('crystal')
+      return new Block('crystal', blockImages)
     }
     else {
-      return new Block(randomColor)
+      return new Block(randomColor, blockImages)
     }
   }
 
 }
-
-document.addEventListener("keydown", handleKeyDown, false)
-document.addEventListener("keyup", handleKeyUp, false)
 
 function drawPiece(image: object, x: number, y: number) {
   // @ts-ignore: Unreachable code error
   ctx.drawImage(image, x, y)
-}
-
-function handleKeyDown(e: { key: string, keyCode: number }) {
-  if (e.key === "Right" || e.key === "ArrowRight") {
-    right = true
-  }
-  if (e.key === "Left" || e.key === "ArrowLeft") {
-    left = true
-  }
-  if (e.key === "Down" || e.key === "ArrowDown") {
-    down = true
-  }
-  if (e.key === "Up" || e.key === "ArrowUp") {
-    up = true
-  }
-  if (e.keyCode === 32) {
-    spacebar = true
-  }
-}
-function handleKeyUp(e: { key: string, keyCode: number }) {
-  if (e.key === "Right" || e.key === "ArrowRight") {
-    right = false
-  }
-  if (e.key === "Left" || e.key === "ArrowLeft") {
-    left = false
-  }
-  if (e.key === "Down" || e.key === "ArrowDown") {
-    down = false
-  }
-  if (e.key === "Up" || e.key === "ArrowUp") {
-    up = false
-  }
-  if (e.keyCode === 32) {
-    spacebar = false
-  }
 }
 
 startBtn.addEventListener('click', () => {
