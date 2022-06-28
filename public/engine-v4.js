@@ -10,14 +10,16 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import Bomb from './classes/bomb.js';
 import Block from './classes/block.js';
 import Long from './classes/long.js';
+import drawPiece from './functions/drawPiece.js';
 import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js';
+import handleDifficulty from './functions/handleDifficulty.js';
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
 // HTML elements ---------------------------------------------------
 var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
 var scoreDiv = document.getElementById("score");
 var startBtn = document.getElementById("startBtn");
-var ctx = canvas.getContext("2d");
 var progressBar = document.getElementById("progress-bar");
 var bombsInventory = document.getElementById("bombs-inventory");
 //------------------------------------------------------------------
@@ -88,7 +90,7 @@ var speed = 40;
 var boost = 5;
 // Other global variables   
 var score = 0;
-var scoreMultiplayer = 1;
+var scoreMultiplier = 1;
 var totalFrameCount = 0;
 var frameCount = 0;
 var isGameOver = false;
@@ -101,44 +103,18 @@ var bombsAvailable = 0;
 var throwBomb = false;
 // Pieces arrays
 var pieces = [];
-export function setPieces(newArray) {
-    pieces = newArray;
-}
+/**
+ * SETERS
+ */
+export var setPieces = function (newArr) { return (pieces = newArr); };
+export var setColorsInPlay = function (newArr) { return (colorsInPlay = newArr); };
+export var setSpeed = function (newSpeed) { return (speed = newSpeed); };
+export var setScoreMultiplier = function (newMultiplier) { return (scoreMultiplier = newMultiplier); };
 function init() {
     window.requestAnimationFrame(gameLoop);
 }
 function gameLoop() {
-    /**
-     * - Add speed and increase score reward as game evolves and
-     *
-     * - Add new colors to the game after a certain
-     * number of frames.
-     */
-    switch (totalFrameCount) {
-        case 1000:
-            colorsInPlay.push("pink");
-            break;
-        case 2000:
-            speed = 35;
-            scoreMultiplayer = 2;
-            colorsInPlay.push("white");
-            break;
-        case 4000:
-            speed = 30;
-            scoreMultiplayer = 3;
-            break;
-        case 7000:
-            speed = 25;
-            scoreMultiplayer = 4;
-            colorsInPlay.push("orange");
-            break;
-        case 10000:
-            speed = 20;
-            scoreMultiplayer = 5;
-            break;
-        default:
-            break;
-    }
+    handleDifficulty(totalFrameCount, colorsInPlay, setColorsInPlay, setSpeed, setScoreMultiplier);
     // Clean the canvas and count the frames
     // @ts-ignore: Unreachable code error
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -153,7 +129,7 @@ function gameLoop() {
     var AP; // Active piece
     // Draw all the pieces and initialize the active piece
     pieces.forEach(function (p) {
-        drawPiece(p.image, p.x, p.y);
+        drawPiece(p.image, p.x, p.y, ctx, canvas);
         p.isActive ? AP = p : null;
     });
     /**
@@ -399,7 +375,7 @@ function gameLoop() {
                     return true; // Dont remove
                 }
             });
-            score += 60 * scoreMultiplayer;
+            score += 60 * scoreMultiplier;
         }
         // Register the row if there is a long in a matching row
         if (c[5] || c[6] || c[7] || c[8] || c[9]) {
@@ -410,7 +386,7 @@ function gameLoop() {
          * ahead and remove the pieces.
          */
         if (savedRows.length === 3) {
-            score += 70 * scoreMultiplayer;
+            score += 70 * scoreMultiplier;
             var _loop_2 = function (row) {
                 pieces = pieces.filter(function (p) {
                     if (p.usingRows[0] === row) {
@@ -555,7 +531,7 @@ function gameLoop() {
     // Animation effects: sparkles on bomb explosion
     if (savedPositions.length > 0) {
         savedPositions.forEach(function (pos, i) {
-            drawPiece(particle, pos.x, pos.y);
+            drawPiece(particle, pos.x, pos.y, ctx, canvas);
             savedPositions[i].frameCount -= 1;
         });
     }
@@ -645,10 +621,6 @@ function createPiece() {
             return new Block(randomColor, blockImages);
         }
     }
-}
-function drawPiece(image, x, y) {
-    // @ts-ignore: Unreachable code error
-    ctx.drawImage(image, x, y);
 }
 startBtn.addEventListener('click', function () {
     if (startBtn.innerText === 'Start Game') {

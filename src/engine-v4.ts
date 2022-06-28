@@ -1,16 +1,18 @@
 import Bomb from './classes/bomb.js'
 import Block from './classes/block.js'
 import Long from './classes/long.js'
+import drawPiece from './functions/drawPiece.js'
 import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js'
+import handleDifficulty from './functions/handleDifficulty.js'
 
 document.addEventListener("keydown", handleKeyDown, false)
 document.addEventListener("keyup", handleKeyUp, false)
 
 // HTML elements ---------------------------------------------------
 const canvas: any = document.getElementById("canvas") as HTMLDivElement
+const ctx = canvas.getContext("2d") as HTMLElement
 const scoreDiv = document.getElementById("score") as HTMLDivElement
 const startBtn = document.getElementById("startBtn") as HTMLDivElement
-const ctx = canvas.getContext("2d") as HTMLElement
 const progressBar = document.getElementById("progress-bar") as HTMLDivElement
 const bombsInventory = document.getElementById("bombs-inventory") as HTMLDivElement
 //------------------------------------------------------------------
@@ -40,6 +42,7 @@ const particle = new Image()
 
 particle.src = 'inGame_images/particle.png'
 // -----------------------------------------------------------------
+
 
 interface Position {
   x: number;
@@ -105,7 +108,7 @@ const boost: number = 5
 
 // Other global variables   
 var score: number = 0
-var scoreMultiplayer: number = 1
+var scoreMultiplier: number = 1
 var totalFrameCount: number = 0
 var frameCount: number = 0
 var isGameOver: boolean = false
@@ -125,9 +128,13 @@ var throwBomb: boolean = false
 // Pieces arrays
 var pieces: any = []
 
-export function setPieces(newArray: any) {
-  pieces = newArray
-}
+/**
+ * SETERS
+ */
+export const setPieces = (newArr: any) => (pieces = newArr)
+export const setColorsInPlay = (newArr: any) => (colorsInPlay = newArr)
+export const setSpeed = (newSpeed: number) => (speed = newSpeed)
+export const setScoreMultiplier = (newMultiplier: number) => (scoreMultiplier = newMultiplier)
 
 function init() {
   window.requestAnimationFrame(gameLoop)
@@ -135,43 +142,13 @@ function init() {
 
 function gameLoop() {
 
-  /**
-   * - Add speed and increase score reward as game evolves and 
-   * 
-   * - Add new colors to the game after a certain
-   * number of frames.
-   */
-  switch (totalFrameCount) {
-    case 1000:
-      colorsInPlay.push("pink")
-      break
-
-    case 2000:
-      speed = 35
-      scoreMultiplayer = 2
-      colorsInPlay.push("white")
-      break
-
-    case 4000:
-      speed = 30
-      scoreMultiplayer = 3
-      break
-
-    case 7000:
-      speed = 25
-      scoreMultiplayer = 4
-      colorsInPlay.push("orange")
-      break
-
-    case 10000:
-      speed = 20
-      scoreMultiplayer = 5
-      break
-
-    default:
-      break
-  }
-
+  handleDifficulty(
+    totalFrameCount,
+    colorsInPlay,
+    setColorsInPlay,
+    setSpeed,
+    setScoreMultiplier
+  )
 
   // Clean the canvas and count the frames
   // @ts-ignore: Unreachable code error
@@ -191,7 +168,7 @@ function gameLoop() {
 
   // Draw all the pieces and initialize the active piece
   pieces.forEach((p: any) => {
-    drawPiece(p.image, p.x, p.y)
+    drawPiece(p.image, p.x, p.y, ctx, canvas)
     p.isActive ? AP = p : null
   })
 
@@ -521,7 +498,7 @@ function gameLoop() {
         }
       })
 
-      score += 60 * scoreMultiplayer
+      score += 60 * scoreMultiplier
     }
 
     // Register the row if there is a long in a matching row
@@ -535,7 +512,7 @@ function gameLoop() {
      */
     if (savedRows.length === 3) {
 
-      score += 70 * scoreMultiplayer
+      score += 70 * scoreMultiplier
 
       for (const row of savedRows)
 
@@ -710,7 +687,7 @@ function gameLoop() {
   // Animation effects: sparkles on bomb explosion
   if (savedPositions.length > 0) {
     savedPositions.forEach((pos, i) => {
-      drawPiece(particle, pos.x, pos.y)
+      drawPiece(particle, pos.x, pos.y, ctx, canvas)
       savedPositions[i].frameCount -= 1
     })
   }
@@ -822,11 +799,6 @@ function createPiece() {
     }
   }
 
-}
-
-function drawPiece(image: object, x: number, y: number) {
-  // @ts-ignore: Unreachable code error
-  ctx.drawImage(image, x, y)
 }
 
 startBtn.addEventListener('click', () => {
