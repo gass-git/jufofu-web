@@ -11,6 +11,7 @@ import Bomb from './classes/bomb.js';
 import Block from './classes/block.js';
 import Long from './classes/long.js';
 import drawPiece from './functions/drawPiece.js';
+import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
 import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js';
 import handleDifficulty from './functions/handleDifficulty.js';
 document.addEventListener("keydown", handleKeyDown, false);
@@ -177,7 +178,7 @@ function gameLoop() {
     // Update progress bar
     progressBar.style.width = fill + '%';
     if (frameCount > n) {
-        var lowestAvailableRow = GET_lowestAvailableRow(AP);
+        var lowestAvailableRow = getLowestAvailableRow(AP, matrix, maxRow_index);
         // Can the active piece move to the next row?    
         if (AP.type === "block" || AP.type === "bomb") {
             if (AP.usingRows[0] < lowestAvailableRow) {
@@ -457,7 +458,7 @@ function gameLoop() {
      *
      */
     pieces.forEach(function (p) {
-        var lowestAvailableRow = GET_lowestAvailableRow(p);
+        var lowestAvailableRow = getLowestAvailableRow(p, matrix, maxRow_index);
         switch (p.type) {
             case "block":
                 if (!p.isActive) {
@@ -537,53 +538,6 @@ function gameLoop() {
     }
     savedPositions = savedPositions.filter(function (pos) { return pos.frameCount > 0; });
     isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop);
-}
-function GET_lowestAvailableRow(piece) {
-    var resultRow;
-    var numbers = [];
-    // Loop through all the columns that the piece is using
-    piece['usingColumns'].forEach(function (column) {
-        /**
-         * The initial row of the loop will be the lower
-         * row been used by the piece + 1
-         *
-         * In the case of the "long" piece the lower row
-         * is piece['usingRows'][1]
-         *
-         * The initial row will switch depending of the piece
-         * type.
-         */
-        var initialRow;
-        switch (piece.type) {
-            case "block":
-                initialRow = piece['usingRows'][0] + 1;
-                break;
-            case "bomb":
-                initialRow = piece['usingRows'][0] + 1;
-                break;
-            case "long":
-                if (piece.isVertical) {
-                    initialRow = piece['usingRows'][2] + 1;
-                }
-                else {
-                    initialRow = piece['usingRows'][0] + 1;
-                }
-                break;
-        }
-        // Loop through all the rows that are below the piece
-        for (var row = initialRow; row <= maxRow_index; row++) {
-            var fragment = matrix[row][column];
-            if (fragment.isOccupied && fragment.pieceIsParked) {
-                numbers.push(row); // Push row number if fragment is been occupied by an inactive piece
-            }
-        }
-    });
-    /**
-     * In case the numbers array is empty, the last
-     * available row will equal maxRow_index.
-     */
-    numbers.length > 0 ? resultRow = Math.min.apply(Math, numbers) - 1 : resultRow = maxRow_index;
-    return resultRow;
 }
 function createPiece() {
     if (throwBomb) {
