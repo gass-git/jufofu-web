@@ -1,4 +1,4 @@
-import { setPieces } from "../engine-v4.js"
+import { setPieces } from "../engine.js"
 
 const bombImage = new Image()
 

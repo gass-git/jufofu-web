@@ -5,79 +5,15 @@ import drawPiece from './functions/drawPiece.js'
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js'
 import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js'
 import handleDifficulty from './functions/handleDifficulty.js'
+import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js'
+import { canvas, ctx, scoreDiv, startBtn, progressBar, bombsInventory } from './utilities/elements.js'
 
 document.addEventListener("keydown", handleKeyDown, false)
 document.addEventListener("keyup", handleKeyUp, false)
 
-// HTML elements ---------------------------------------------------
-const canvas: any = document.getElementById("canvas") as HTMLDivElement
-const ctx = canvas.getContext("2d") as HTMLElement
-const scoreDiv = document.getElementById("score") as HTMLDivElement
-const startBtn = document.getElementById("startBtn") as HTMLDivElement
-const progressBar = document.getElementById("progress-bar") as HTMLDivElement
-const bombsInventory = document.getElementById("bombs-inventory") as HTMLDivElement
-//------------------------------------------------------------------
-
-// Block images ----------------------------------------------------
-const greenBlock = new Image()
-const blueBlock = new Image()
-const pinkBlock = new Image()
-const crystalBlock = new Image()
-const yellowBlock = new Image()
-const redBlock = new Image()
-const whiteBlock = new Image()
-const orangeBlock = new Image()
-
-crystalBlock.src = "inGame_images/crystalBlock.png"
-blueBlock.src = "inGame_images/blueBlock.png"
-greenBlock.src = "inGame_images/greenBlock.png"
-yellowBlock.src = "inGame_images/yellowBlock.png"
-redBlock.src = "inGame_images/redBlock.png"
-pinkBlock.src = "inGame_images/pinkBlock.png"
-whiteBlock.src = "inGame_images/whiteBlock.png"
-orangeBlock.src = "inGame_images/orangeBlock.png"
-// -----------------------------------------------------------------
-
-// Particle image -------------------------------------------------
-const particle = new Image()
-
-particle.src = 'inGame_images/particle.png'
-// -----------------------------------------------------------------
-
-
-interface Position {
-  x: number;
-  y: number;
-  frameCount: number;
-}
-
-// Save coordinates of blocks removed
-var savedPositions: Position[] = []
-
-interface BlockImage {
-  [key: string]: object
-}
-
-const blockImages: BlockImage = {
-  green: greenBlock,
-  blue: blueBlock,
-  crystal: crystalBlock,
-  pink: pinkBlock,
-  yellow: yellowBlock,
-  red: redBlock,
-  white: whiteBlock,
-  orange: orangeBlock
-}
-
-
-var colorsInPlay: string[] = [
-  "yellow",
-  "blue",
-  "crystal"
-]
-
-
-// matrix[rowIndex][columnIndex]
+/**
+ * matrix[rowIndex][columnIndex]
+ **/
 var matrix: object[][] = [
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}],
@@ -93,21 +29,8 @@ var matrix: object[][] = [
 
 var maxRow_index = matrix.length - 1
 var maxColumn_index = matrix[0].length - 1
-
-/**
- * Movement variables
- * 
- * `speed` is the rate of frames at which the blocks
- * drop.
- * 
- * The smaller the `boost` number, the fastest
- * the piece will drop.
- * 
- */
-var speed: number = 40
-const boost: number = 5
-
-// Other global variables   
+var speed: number = 40                       // rate of frames at which the piece falls
+var boost: number = 5                        // the smaller the number, the faster the piece will fall
 var score: number = 0
 var scoreMultiplier: number = 1
 var totalFrameCount: number = 0
@@ -115,19 +38,34 @@ var frameCount: number = 0
 var isGameOver: boolean = false
 var timeOut: boolean = false
 var longInPlay: boolean = false
-
-
-// Variable for progress bar functionality
-var fill: number = 0
-
-
-// Bomb inventory
+var fill: number = 0                         // variable for progress bar functionality
 var bombsAvailable: number = 0
 var throwBomb: boolean = false
-
-
-// Pieces arrays
 var pieces: any = []
+var colorsInPlay: string[] = ["yellow", "blue", "crystal"]
+
+interface Position {
+  x: number;
+  y: number;
+  frameCount: number;
+}
+
+var savedPositions: Position[] = []          // coordinates of blocks removed
+
+interface BlockImage {
+  [key: string]: object
+}
+
+var blockImages: BlockImage = {
+  green: greenBlock,
+  blue: blueBlock,
+  crystal: crystalBlock,
+  pink: pinkBlock,
+  yellow: yellowBlock,
+  red: redBlock,
+  white: whiteBlock,
+  orange: orangeBlock
+}
 
 /**
  * SETERS
@@ -699,14 +637,12 @@ function gameLoop() {
 }
 
 function createPiece() {
-
   if (throwBomb) {
     throwBomb = false
     bombsAvailable -= 1
     return new Bomb()
   }
   else {
-
     let rand = Math.random()
 
     /**
@@ -755,5 +691,3 @@ startBtn.addEventListener('click', () => {
 
   (document.activeElement as HTMLElement).blur();
 })
-
-

@@ -1,4 +1,4 @@
-import { setPieces } from "../engine-v4.js";
+import { setPieces } from "../engine.js";
 var bombImage = new Image();
 bombImage.src = "inGame_images/blackCircle.png";
 var Bomb = /** @class */ (function () {
