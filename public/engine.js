@@ -12,10 +12,11 @@ import Block from './classes/block.js';
 import Long from './classes/long.js';
 import drawPiece from './functions/drawPiece.js';
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
-import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js';
 import handleDifficulty from './functions/handleDifficulty.js';
+import { right, left, down, up, spacebar } from './functions/keyHandlers.js';
+import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js';
+import { handleKeyDown, handleKeyUp } from './functions/keyHandlers.js';
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js';
-import { canvas, ctx, scoreDiv, startBtn, progressBar, bombsInventory } from './utilities/elements.js';
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
 /**
@@ -47,7 +48,7 @@ var longInPlay = false;
 var fill = 0; // variable for progress bar functionality
 var bombsAvailable = 0;
 var throwBomb = false;
-var pieces = [];
+export var pieces = [];
 var colorsInPlay = ["yellow", "blue", "crystal"];
 var savedPositions = []; // coordinates of blocks removed
 var blockImages = {
@@ -67,10 +68,7 @@ export var setPieces = function (newArr) { return (pieces = newArr); };
 export var setColorsInPlay = function (newArr) { return (colorsInPlay = newArr); };
 export var setSpeed = function (newSpeed) { return (speed = newSpeed); };
 export var setScoreMultiplier = function (newMultiplier) { return (scoreMultiplier = newMultiplier); };
-function init() {
-    window.requestAnimationFrame(gameLoop);
-}
-function gameLoop() {
+export function gameLoop() {
     handleDifficulty(totalFrameCount, colorsInPlay, setColorsInPlay, setSpeed, setScoreMultiplier);
     // Clean the canvas and count the frames
     // @ts-ignore: Unreachable code error
@@ -90,8 +88,7 @@ function gameLoop() {
         p.isActive ? AP = p : null;
     });
     /**
-     * @abstract Throw bomb on next turn ?
-     *
+     * Throw bomb on next turn ?
      */
     if (spacebar && !throwBomb && bombsAvailable > 0) {
         throwBomb = true;
@@ -532,14 +529,3 @@ function createPiece() {
         }
     }
 }
-startBtn.addEventListener('click', function () {
-    if (startBtn.innerText === 'Start Game') {
-        pieces.length > 0 ? pieces = [] : null;
-        startBtn.innerText = 'End Game';
-        init();
-    }
-    else {
-        location.reload();
-    }
-    document.activeElement.blur();
-});

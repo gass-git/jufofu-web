@@ -3,10 +3,11 @@ import Block from './classes/block.js'
 import Long from './classes/long.js'
 import drawPiece from './functions/drawPiece.js'
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js'
-import { handleKeyDown, handleKeyUp, right, left, down, up, spacebar } from './functions/keyHandlers.js'
 import handleDifficulty from './functions/handleDifficulty.js'
+import { right, left, down, up, spacebar } from './functions/keyHandlers.js'
+import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js'
+import { handleKeyDown, handleKeyUp } from './functions/keyHandlers.js'
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js'
-import { canvas, ctx, scoreDiv, startBtn, progressBar, bombsInventory } from './utilities/elements.js'
 
 document.addEventListener("keydown", handleKeyDown, false)
 document.addEventListener("keyup", handleKeyUp, false)
@@ -41,7 +42,7 @@ var longInPlay: boolean = false
 var fill: number = 0                         // variable for progress bar functionality
 var bombsAvailable: number = 0
 var throwBomb: boolean = false
-var pieces: any = []
+export var pieces: any = []
 var colorsInPlay: string[] = ["yellow", "blue", "crystal"]
 
 interface Position {
@@ -75,11 +76,7 @@ export const setColorsInPlay = (newArr: any) => (colorsInPlay = newArr)
 export const setSpeed = (newSpeed: number) => (speed = newSpeed)
 export const setScoreMultiplier = (newMultiplier: number) => (scoreMultiplier = newMultiplier)
 
-function init() {
-  window.requestAnimationFrame(gameLoop)
-}
-
-function gameLoop() {
+export function gameLoop() {
 
   handleDifficulty(
     totalFrameCount,
@@ -112,8 +109,7 @@ function gameLoop() {
   })
 
   /**
-   * @abstract Throw bomb on next turn ?
-   * 
+   * Throw bomb on next turn ?
    */
   if (spacebar && !throwBomb && bombsAvailable > 0) {
     throwBomb = true
@@ -678,16 +674,3 @@ function createPiece() {
   }
 
 }
-
-startBtn.addEventListener('click', () => {
-  if (startBtn.innerText === 'Start Game') {
-    pieces.length > 0 ? pieces = [] : null
-    startBtn.innerText = 'End Game'
-    init()
-  }
-  else {
-    location.reload()
-  }
-
-  (document.activeElement as HTMLElement).blur();
-})
