@@ -284,6 +284,7 @@ function gameLoop() {
             break;
     }
     // Clean the canvas and count the frames
+    // @ts-ignore: Unreachable code error
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     totalFrameCount++;
     frameCount++;
@@ -796,6 +797,7 @@ function createPiece() {
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
 function drawPiece(image, x, y) {
+    // @ts-ignore: Unreachable code error
     ctx.drawImage(image, x, y);
 }
 function handleKeyDown(e) {
