@@ -1,3 +1,7 @@
+import Bomb from './classes/bomb.js'
+import Block from './classes/block.js'
+import Long from './classes/long.js'
+
 // HTML elements ---------------------------------------------------
 const canvas: any = document.getElementById("canvas") as HTMLDivElement
 const scoreDiv = document.getElementById("score") as HTMLDivElement
@@ -138,222 +142,8 @@ var throwBomb: boolean = false
 // Pieces arrays
 var pieces: any = []
 
-/**
- * @abstract Piece classes
- * 
- */
-class Block {
-  type: string;
-  color: string;
-  image: object;
-  x: number;
-  y: number;
-  isRearranging: boolean;
-  prevRowPos: number | null;
-  isActive: boolean;
-  usingColumns: number[];
-  usingRows: number[];
-
-  constructor(color: string) {
-    this.type = "block"
-    this.color = color,
-      this.image = blockImages[color],
-      this.x = 120,
-      this.y = 0,
-      this.isRearranging = false,
-      this.prevRowPos = null,
-      this.isActive = true,
-      this.usingColumns = [3],
-      this.usingRows = [0]
-  }
-}
-class Bomb {
-  type: string;
-  color: string | null;
-  image: object;
-  x: number;
-  y: number;
-  isActive: boolean;
-  usingColumns: number[];
-  usingRows: number[];
-
-  constructor() {
-    this.type = "bomb"
-    this.color = null,
-      this.image = bombImage,
-      this.x = 120,
-      this.y = 0,
-      this.isActive = true,
-      this.usingColumns = [3],
-      this.usingRows = [0]
-  }
-
-  static explode(p: Bomb) {
-
-    let bombColumn = p.usingColumns[0],
-      bombRow = p.usingRows[0];
-
-    // Sorrounding fragments     
-    let sorroundingArea = [
-      { row: bombRow - 1, column: bombColumn - 1 },   // top-left 
-      { row: bombRow - 1, column: bombColumn },       // top
-      { row: bombRow - 1, column: bombColumn + 1 },   // top-right
-      { row: bombRow, column: bombColumn - 1 },       // left
-      { row: bombRow, column: bombColumn + 1 },       // right
-      { row: bombRow + 1, column: bombColumn - 1 },   // bottom-left
-      { row: bombRow + 1, column: bombColumn },       // bottom
-      { row: bombRow + 1, column: bombColumn + 1 }    // bottom-right
-    ]
-
-    // Destroy all sorrounding pieces that are not crystal
-    pieces = pieces.filter((p: any) => {
-
-      let destroyPiece = false
-
-      if (p.type === "block") {
-
-        let pieceRow = p.usingRows[0],
-          pieceColumn = p.usingColumns[0];
-
-        for (const area of sorroundingArea) {
-
-          if (pieceRow === area.row && pieceColumn === area.column) {
-
-            if (p.color !== "crystal") {
-              destroyPiece = true
-              break
-            }
-          }
-        }
-      }
-
-      if (destroyPiece === true) {
-
-        // Save positions for particle animations
-        savedPositions.push({
-          x: p.x + 9,
-          y: p.y + 10,
-          frameCount: 5
-        })
-
-        return false // Remove the piece
-      }
-      else {
-        return true // Keep the piece
-      }
-
-
-
-
-    })
-
-
-  }
-
-}
-class Long {
-  type: string;
-  isVertical: boolean;
-  color: string;
-  image: object;
-  x: number;
-  y: number;
-  isRearranging: boolean;
-  prevBottomRowPos: number | null;
-  isActive: boolean;
-  usingColumns: number[];
-  usingRows: number[];
-
-  constructor() {
-    this.type = "long",
-      this.isVertical = true,
-      this.color = "crystal",
-      this.image = tallCrystal,
-      this.x = 120,
-      this.y = 0,
-      this.isRearranging = false,
-      this.prevBottomRowPos = null,
-      this.isActive = true,
-      this.usingColumns = [3],
-      this.usingRows = [0, 1, 2]
-  }
-
-  static rotate(p: Long) {
-
-    if (p.isVertical) {
-
-      /**
-       * Before rotating let's check if the piece can rotate
-       */
-
-      // Check canvas borders
-      if (p.usingColumns[0] > 0 && p.usingColumns[0] < maxColumn_index) {
-
-        let M = matrix
-        let pieceColumn = p.usingColumns[0]
-        let pieceRow = p.usingRows
-        let pieceMiddleRow = p.usingRows[1]
-        let left_fragment_1: any = M[pieceRow[0]][pieceColumn - 1]
-        let left_fragment_2: any = M[pieceRow[1]][pieceColumn - 1]
-        let left_fragment_3: any = M[pieceRow[2]][pieceColumn - 1]
-        let right_fragment_1: any = M[pieceRow[0]][pieceColumn + 1]
-        let right_fragment_2: any = M[pieceRow[1]][pieceColumn + 1]
-        let right_fragment_3: any = M[pieceRow[2]][pieceColumn + 1]
-
-        // Rotating area conditions
-        let c = [
-          !left_fragment_1.isOccupied,
-          !left_fragment_2.isOccupied,
-          !left_fragment_3.isOccupied,
-          !right_fragment_1.isOccupied,
-          !right_fragment_2.isOccupied,
-          !right_fragment_3.isOccupied
-        ]
-
-        // Is rotation possible ?
-        if (c[0] && c[1] && c[2] && c[3] && c[4] && c[5]) {
-          p.isVertical = false
-          p.x -= 40
-          p.y += 40
-          p.usingColumns = [pieceColumn - 1, pieceColumn, pieceColumn + 1]
-          p.usingRows = [pieceMiddleRow]
-          p.image = flatCrystal
-        }
-
-      }
-    }
-
-    else if (!p.isVertical) {
-
-      /**
-       * Before rotating let's check if the piece can rotate
-       */
-      let M = matrix,
-        pieceColumn = p.usingColumns,
-        pieceRow = p.usingRows[0],
-        topLeft_fragment: any = M[pieceRow - 1][pieceColumn[0]],
-        topMiddle_fragment: any = M[pieceRow - 1][pieceColumn[1]],
-        topRight_fragment: any = M[pieceRow - 1][pieceColumn[2]];
-
-      // Rotation area conditions    
-      let c = [
-        !topLeft_fragment.isOccupied,
-        !topMiddle_fragment.isOccupied,
-        !topRight_fragment.isOccupied
-      ]
-
-      if (c[0] && c[1] && c[2]) {
-
-        p.isVertical = true
-        p.x += 40
-        p.y -= 40
-        p.usingColumns = [pieceColumn[1]]
-        p.usingRows = [pieceRow - 1, pieceRow, pieceRow + 1]
-        p.image = tallCrystal
-      }
-    }
-
-  }
+export function setPieces(newArray: any) {
+  pieces = newArray
 }
 
 function init() {
@@ -440,7 +230,7 @@ function gameLoop() {
    */
   if (up && AP.type === "long" && !timeOut) {
 
-    Long.rotate(AP)
+    Long.rotate(AP, matrix, maxColumn_index)
     timeOut = true
     setTimeout(() => { timeOut = false }, 120)
   }
@@ -514,7 +304,7 @@ function gameLoop() {
         if (AP.type === "bomb") {
 
           // Destroy sorrounding color pieces
-          Bomb.explode(AP)
+          Bomb.explode(AP, savedPositions, pieces)
 
           // Destroy bomb
           pieces = pieces.filter((p: any) => p.type !== "bomb")

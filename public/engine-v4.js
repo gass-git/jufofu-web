@@ -1,21 +1,32 @@
-"use strict";
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+import Bomb from './classes/bomb.js';
+import Block from './classes/block.js';
+import Long from './classes/long.js';
 // HTML elements ---------------------------------------------------
-const canvas = document.getElementById("canvas");
-const scoreDiv = document.getElementById("score");
-const startBtn = document.getElementById("startBtn");
-const ctx = canvas.getContext("2d");
-const progressBar = document.getElementById("progress-bar");
-const bombsInventory = document.getElementById("bombs-inventory");
+var canvas = document.getElementById("canvas");
+var scoreDiv = document.getElementById("score");
+var startBtn = document.getElementById("startBtn");
+var ctx = canvas.getContext("2d");
+var progressBar = document.getElementById("progress-bar");
+var bombsInventory = document.getElementById("bombs-inventory");
 //------------------------------------------------------------------
 // Block images ----------------------------------------------------
-const greenBlock = new Image();
-const blueBlock = new Image();
-const pinkBlock = new Image();
-const crystalBlock = new Image();
-const yellowBlock = new Image();
-const redBlock = new Image();
-const whiteBlock = new Image();
-const orangeBlock = new Image();
+var greenBlock = new Image();
+var blueBlock = new Image();
+var pinkBlock = new Image();
+var crystalBlock = new Image();
+var yellowBlock = new Image();
+var redBlock = new Image();
+var whiteBlock = new Image();
+var orangeBlock = new Image();
 crystalBlock.src = "inGame_images/crystalBlock.png";
 blueBlock.src = "inGame_images/blueBlock.png";
 greenBlock.src = "inGame_images/greenBlock.png";
@@ -26,21 +37,21 @@ whiteBlock.src = "inGame_images/whiteBlock.png";
 orangeBlock.src = "inGame_images/orangeBlock.png";
 // -----------------------------------------------------------------
 // long piece images -----------------------------------------------
-const tallCrystal = new Image();
-const flatCrystal = new Image();
+var tallCrystal = new Image();
+var flatCrystal = new Image();
 tallCrystal.src = "inGame_images/tallCrystal.png";
 flatCrystal.src = "inGame_images/flatCrystal.png";
 // -----------------------------------------------------------------
 // Bomb image ------------------------------------------------------
-const bombImage = new Image();
+var bombImage = new Image();
 bombImage.src = "inGame_images/blackCircle.png";
 // -----------------------------------------------------------------
 // Particle image -------------------------------------------------
-const particle = new Image();
+var particle = new Image();
 particle.src = 'inGame_images/particle.png';
 // Save coordinates of blocks removed
 var savedPositions = [];
-const blockImages = {
+var blockImages = {
     green: greenBlock,
     blue: blueBlock,
     crystal: crystalBlock,
@@ -81,7 +92,7 @@ var maxColumn_index = matrix[0].length - 1;
  *
  */
 var speed = 40;
-const boost = 5;
+var boost = 5;
 var right = false;
 var left = false;
 var down = false;
@@ -102,150 +113,12 @@ var bombsAvailable = 0;
 var throwBomb = false;
 // Pieces arrays
 var pieces = [];
+export function setPieces(newArray) {
+    pieces = newArray;
+}
 /**
- * @abstract Piece classes
- *
+ * Piece classes
  */
-class Block {
-    constructor(color) {
-        this.type = "block";
-        this.color = color,
-            this.image = blockImages[color],
-            this.x = 120,
-            this.y = 0,
-            this.isRearranging = false,
-            this.prevRowPos = null,
-            this.isActive = true,
-            this.usingColumns = [3],
-            this.usingRows = [0];
-    }
-}
-class Bomb {
-    constructor() {
-        this.type = "bomb";
-        this.color = null,
-            this.image = bombImage,
-            this.x = 120,
-            this.y = 0,
-            this.isActive = true,
-            this.usingColumns = [3],
-            this.usingRows = [0];
-    }
-    static explode(p) {
-        let bombColumn = p.usingColumns[0], bombRow = p.usingRows[0];
-        // Sorrounding fragments     
-        let sorroundingArea = [
-            { row: bombRow - 1, column: bombColumn - 1 },
-            { row: bombRow - 1, column: bombColumn },
-            { row: bombRow - 1, column: bombColumn + 1 },
-            { row: bombRow, column: bombColumn - 1 },
-            { row: bombRow, column: bombColumn + 1 },
-            { row: bombRow + 1, column: bombColumn - 1 },
-            { row: bombRow + 1, column: bombColumn },
-            { row: bombRow + 1, column: bombColumn + 1 } // bottom-right
-        ];
-        // Destroy all sorrounding pieces that are not crystal
-        pieces = pieces.filter((p) => {
-            let destroyPiece = false;
-            if (p.type === "block") {
-                let pieceRow = p.usingRows[0], pieceColumn = p.usingColumns[0];
-                for (const area of sorroundingArea) {
-                    if (pieceRow === area.row && pieceColumn === area.column) {
-                        if (p.color !== "crystal") {
-                            destroyPiece = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (destroyPiece === true) {
-                // Save positions for particle animations
-                savedPositions.push({
-                    x: p.x + 9,
-                    y: p.y + 10,
-                    frameCount: 5
-                });
-                return false; // Remove the piece
-            }
-            else {
-                return true; // Keep the piece
-            }
-        });
-    }
-}
-class Long {
-    constructor() {
-        this.type = "long",
-            this.isVertical = true,
-            this.color = "crystal",
-            this.image = tallCrystal,
-            this.x = 120,
-            this.y = 0,
-            this.isRearranging = false,
-            this.prevBottomRowPos = null,
-            this.isActive = true,
-            this.usingColumns = [3],
-            this.usingRows = [0, 1, 2];
-    }
-    static rotate(p) {
-        if (p.isVertical) {
-            /**
-             * Before rotating let's check if the piece can rotate
-             */
-            // Check canvas borders
-            if (p.usingColumns[0] > 0 && p.usingColumns[0] < maxColumn_index) {
-                let M = matrix;
-                let pieceColumn = p.usingColumns[0];
-                let pieceRow = p.usingRows;
-                let pieceMiddleRow = p.usingRows[1];
-                let left_fragment_1 = M[pieceRow[0]][pieceColumn - 1];
-                let left_fragment_2 = M[pieceRow[1]][pieceColumn - 1];
-                let left_fragment_3 = M[pieceRow[2]][pieceColumn - 1];
-                let right_fragment_1 = M[pieceRow[0]][pieceColumn + 1];
-                let right_fragment_2 = M[pieceRow[1]][pieceColumn + 1];
-                let right_fragment_3 = M[pieceRow[2]][pieceColumn + 1];
-                // Rotating area conditions
-                let c = [
-                    !left_fragment_1.isOccupied,
-                    !left_fragment_2.isOccupied,
-                    !left_fragment_3.isOccupied,
-                    !right_fragment_1.isOccupied,
-                    !right_fragment_2.isOccupied,
-                    !right_fragment_3.isOccupied
-                ];
-                // Is rotation possible ?
-                if (c[0] && c[1] && c[2] && c[3] && c[4] && c[5]) {
-                    p.isVertical = false;
-                    p.x -= 40;
-                    p.y += 40;
-                    p.usingColumns = [pieceColumn - 1, pieceColumn, pieceColumn + 1];
-                    p.usingRows = [pieceMiddleRow];
-                    p.image = flatCrystal;
-                }
-            }
-        }
-        else if (!p.isVertical) {
-            /**
-             * Before rotating let's check if the piece can rotate
-             */
-            let M = matrix, pieceColumn = p.usingColumns, pieceRow = p.usingRows[0], topLeft_fragment = M[pieceRow - 1][pieceColumn[0]], topMiddle_fragment = M[pieceRow - 1][pieceColumn[1]], topRight_fragment = M[pieceRow - 1][pieceColumn[2]];
-            // Rotation area conditions    
-            let c = [
-                !topLeft_fragment.isOccupied,
-                !topMiddle_fragment.isOccupied,
-                !topRight_fragment.isOccupied
-            ];
-            if (c[0] && c[1] && c[2]) {
-                p.isVertical = true;
-                p.x += 40;
-                p.y -= 40;
-                p.usingColumns = [pieceColumn[1]];
-                p.usingRows = [pieceRow - 1, pieceRow, pieceRow + 1];
-                p.image = tallCrystal;
-            }
-        }
-    }
-}
 function init() {
     window.requestAnimationFrame(gameLoop);
 }
@@ -292,11 +165,11 @@ function gameLoop() {
     scoreDiv.innerText = score.toString();
     // Create the first piece
     if (pieces.length === 0) {
-        pieces = [...pieces, createPiece()];
+        pieces = __spreadArray(__spreadArray([], pieces, true), [createPiece()], false);
     }
     var AP; // Active piece
     // Draw all the pieces and initialize the active piece
-    pieces.forEach((p) => {
+    pieces.forEach(function (p) {
         drawPiece(p.image, p.x, p.y);
         p.isActive ? AP = p : null;
     });
@@ -313,9 +186,9 @@ function gameLoop() {
      *
      */
     if (up && AP.type === "long" && !timeOut) {
-        Long.rotate(AP);
+        Long.rotate(AP, matrix, maxColumn_index);
         timeOut = true;
-        setTimeout(() => { timeOut = false; }, 120);
+        setTimeout(function () { timeOut = false; }, 120);
     }
     /**
      * @abstract
@@ -323,7 +196,7 @@ function gameLoop() {
      * VERTICAL MOVEMENT
      *
      */
-    let n;
+    var n;
     // Show available bombs 
     var node = document.createElement("span");
     var imageElement = document.createElement("img");
@@ -349,7 +222,7 @@ function gameLoop() {
     // Update progress bar
     progressBar.style.width = fill + '%';
     if (frameCount > n) {
-        let lowestAvailableRow = GET_lowestAvailableRow(AP);
+        var lowestAvailableRow = GET_lowestAvailableRow(AP);
         // Can the active piece move to the next row?    
         if (AP.type === "block" || AP.type === "bomb") {
             if (AP.usingRows[0] < lowestAvailableRow) {
@@ -369,9 +242,9 @@ function gameLoop() {
             else {
                 if (AP.type === "bomb") {
                     // Destroy sorrounding color pieces
-                    Bomb.explode(AP);
+                    Bomb.explode(AP, savedPositions, pieces);
                     // Destroy bomb
-                    pieces = pieces.filter((p) => p.type !== "bomb");
+                    pieces = pieces.filter(function (p) { return p.type !== "bomb"; });
                 }
                 else {
                     // Deactivate piece
@@ -421,7 +294,7 @@ function gameLoop() {
      *
      */
     if (left && !timeOut) {
-        let left_fragment;
+        var left_fragment = void 0;
         if (AP.type === "long") {
             if (AP.isVertical) {
                 left_fragment = matrix[AP.usingRows[2]][AP.usingColumns[0] - 1];
@@ -458,10 +331,10 @@ function gameLoop() {
             }
         }
         timeOut = true;
-        setTimeout(() => { timeOut = false; }, 120);
+        setTimeout(function () { timeOut = false; }, 120);
     }
     if (right && !timeOut) {
-        let right_fragment;
+        var right_fragment = void 0;
         if (AP.type === "long") {
             if (AP.isVertical) {
                 right_fragment = matrix[AP.usingRows[2]][AP.usingColumns[0] + 1];
@@ -501,16 +374,16 @@ function gameLoop() {
             }
         }
         timeOut = true;
-        setTimeout(() => { timeOut = false; }, 120);
+        setTimeout(function () { timeOut = false; }, 120);
     }
     /**
      * @abstract Matching rows
      *
      */
-    let savedRows = [];
-    matrix.forEach((rowFragments, rowIndex) => {
-        let vertical_long_inRow = false;
-        let count = {
+    var savedRows = [];
+    matrix.forEach(function (rowFragments, rowIndex) {
+        var vertical_long_inRow = false;
+        var count = {
             blue: 0,
             orange: 0,
             yellow: 0,
@@ -518,7 +391,7 @@ function gameLoop() {
             crystal: 0,
             white: 0
         };
-        rowFragments.forEach((fragment) => {
+        rowFragments.forEach(function (fragment) {
             if (fragment.isOccupied && fragment.pieceIsParked) {
                 fragment.piecePosition === "vertical" ? vertical_long_inRow = true : null;
                 fragment.color === "crystal" && fragment.piecePosition !== "vertical" ? count.crystal++ : null;
@@ -530,7 +403,7 @@ function gameLoop() {
             }
         });
         // Conditions
-        let c = [
+        var c = [
             count.crystal + count.blue === maxColumn_index + 1,
             count.crystal + count.orange === maxColumn_index + 1,
             count.crystal + count.yellow === maxColumn_index + 1,
@@ -543,7 +416,7 @@ function gameLoop() {
             count.crystal + count.white === maxColumn_index
         ];
         if (c[0] || c[1] || c[2] || c[3] || c[4]) {
-            pieces = pieces.filter((p) => {
+            pieces = pieces.filter(function (p) {
                 if (p.usingRows[0] === rowIndex) {
                     return false; // Remove
                 }
@@ -563,8 +436,8 @@ function gameLoop() {
          */
         if (savedRows.length === 3) {
             score += 70 * scoreMultiplayer;
-            for (const row of savedRows)
-                pieces = pieces.filter((p) => {
+            var _loop_2 = function (row) {
+                pieces = pieces.filter(function (p) {
                     if (p.usingRows[0] === row) {
                         return false; // Remove
                     }
@@ -572,6 +445,11 @@ function gameLoop() {
                         return true; // Dont remove
                     }
                 });
+            };
+            for (var _i = 0, savedRows_1 = savedRows; _i < savedRows_1.length; _i++) {
+                var row = savedRows_1[_i];
+                _loop_2(row);
+            }
         }
     });
     /**
@@ -593,9 +471,8 @@ function gameLoop() {
         [{}, {}, {}, {}, {}, {}],
         [{}, {}, {}, {}, {}, {}]
     ];
-    // Populate matrix with empty objects
-    for (let row = 0; row < matrix.length; row++) {
-        matrix[row].forEach((column, i) => {
+    var _loop_1 = function (row) {
+        matrix[row].forEach(function (column, i) {
             matrix[row][i] = {
                 color: null,
                 type: null,
@@ -604,12 +481,16 @@ function gameLoop() {
                 piecePosition: null
             };
         });
+    };
+    // Populate matrix with empty objects
+    for (var row = 0; row < matrix.length; row++) {
+        _loop_1(row);
     }
     // Populate with the position of each piece
-    pieces.forEach((p) => {
-        p.usingColumns.forEach((column) => {
-            p.usingRows.forEach((row) => {
-                let fragment = matrix[row][column];
+    pieces.forEach(function (p) {
+        p.usingColumns.forEach(function (column) {
+            p.usingRows.forEach(function (row) {
+                var fragment = matrix[row][column];
                 fragment.type = p.type;
                 fragment.color = p.color;
                 fragment.isOccupied = true;
@@ -627,8 +508,8 @@ function gameLoop() {
        * above the lines been removed.
        *
        */
-    pieces.forEach((p) => {
-        let lowestAvailableRow = GET_lowestAvailableRow(p);
+    pieces.forEach(function (p) {
+        var lowestAvailableRow = GET_lowestAvailableRow(p);
         switch (p.type) {
             case "block":
                 if (!p.isActive) {
@@ -638,7 +519,7 @@ function gameLoop() {
                         p.usingRows[0] = lowestAvailableRow;
                     }
                     if (p.isRearranging) {
-                        let delta = p.usingRows[0] - p.prevRowPos, y_distance = 40 * delta;
+                        var delta = p.usingRows[0] - p.prevRowPos, y_distance = 40 * delta;
                         // Smooth falling effect: it takes 5 frames to fall into lowest available row
                         if (p.usingRows[0] * 40 - p.y > 0) {
                             p.y += y_distance / 10;
@@ -659,7 +540,7 @@ function gameLoop() {
                         p.usingRows[2] = lowestAvailableRow;
                     }
                     if (p.isRearranging) {
-                        let delta = p.usingRows[2] - p.prevBottomRowPos, y_distance = 40 * delta;
+                        var delta = p.usingRows[2] - p.prevBottomRowPos, y_distance = 40 * delta;
                         // Smooth falling effect: it takes 5 frames to fall into lowest available row
                         if (p.usingRows[2] * 40 - (p.y + 80) > 0) {
                             p.y += y_distance / 10;
@@ -676,7 +557,7 @@ function gameLoop() {
                         p.usingRows[0] = lowestAvailableRow;
                     }
                     if (p.isRearranging) {
-                        let delta = p.usingRows[0] - p.prevBottomRowPos, y_distance = 40 * delta;
+                        var delta = p.usingRows[0] - p.prevBottomRowPos, y_distance = 40 * delta;
                         // Smooth falling effect: it takes 5 frames to fall into lowest available row
                         if (p.usingRows[0] * 40 - p.y > 0) {
                             p.y += y_distance / 10;
@@ -690,8 +571,9 @@ function gameLoop() {
         }
     });
     // If there is a parked piece in row index "0" is game over
-    let fragment;
-    for (fragment of matrix[0]) {
+    var fragment;
+    for (var _i = 0, _a = matrix[0]; _i < _a.length; _i++) {
+        fragment = _a[_i];
         if (fragment.isOccupied && fragment.pieceIsParked) {
             isGameOver = true;
             alert('Game over\nScore: ' + score);
@@ -700,19 +582,19 @@ function gameLoop() {
     }
     // Animation effects: sparkles on bomb explosion
     if (savedPositions.length > 0) {
-        savedPositions.forEach((pos, i) => {
+        savedPositions.forEach(function (pos, i) {
             drawPiece(particle, pos.x, pos.y);
             savedPositions[i].frameCount -= 1;
         });
     }
-    savedPositions = savedPositions.filter(pos => pos.frameCount > 0);
+    savedPositions = savedPositions.filter(function (pos) { return pos.frameCount > 0; });
     isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop);
 }
 function GET_lowestAvailableRow(piece) {
-    let resultRow;
-    let numbers = [];
+    var resultRow;
+    var numbers = [];
     // Loop through all the columns that the piece is using
-    piece['usingColumns'].forEach((column) => {
+    piece['usingColumns'].forEach(function (column) {
         /**
          * @abstract
          * The initial row of the loop will be the lower
@@ -725,7 +607,7 @@ function GET_lowestAvailableRow(piece) {
          * type.
          *
          */
-        let initialRow;
+        var initialRow;
         switch (piece.type) {
             case "block":
                 initialRow = piece['usingRows'][0] + 1;
@@ -743,8 +625,8 @@ function GET_lowestAvailableRow(piece) {
                 break;
         }
         // Loop through all the rows that are below the piece
-        for (let row = initialRow; row <= maxRow_index; row++) {
-            let fragment = matrix[row][column];
+        for (var row = initialRow; row <= maxRow_index; row++) {
+            var fragment = matrix[row][column];
             if (fragment.isOccupied && fragment.pieceIsParked) {
                 numbers.push(row); // Push row number if fragment is been occupied by an inactive piece
             }
@@ -755,7 +637,7 @@ function GET_lowestAvailableRow(piece) {
      * In case the numbers array is empty, the last
      * available row will equal maxRow_index.
      */
-    numbers.length > 0 ? resultRow = Math.min(...numbers) - 1 : resultRow = maxRow_index;
+    numbers.length > 0 ? resultRow = Math.min.apply(Math, numbers) - 1 : resultRow = maxRow_index;
     return resultRow;
 }
 function createPiece() {
@@ -765,13 +647,14 @@ function createPiece() {
         return new Bomb();
     }
     else {
-        let rand = Math.random();
+        var rand = Math.random();
         /**
          * Only one longInPlay is allowed to be in play,
          * having more would create many issues..
          */
         // Is there a longInPlay?
-        for (const p of pieces) {
+        for (var _i = 0, pieces_1 = pieces; _i < pieces_1.length; _i++) {
+            var p = pieces_1[_i];
             if (p.type === "long") {
                 longInPlay = true;
                 break;
@@ -781,7 +664,7 @@ function createPiece() {
             }
         }
         // Get random color from colors in play
-        let randomColor = colorsInPlay[Math.floor(Math.random() * (colorsInPlay.length))];
+        var randomColor = colorsInPlay[Math.floor(Math.random() * (colorsInPlay.length))];
         // IMPORTANT: make sure the function ALWAYS returns a piece
         if (rand < 0.15 && !longInPlay) {
             return new Long();
@@ -834,7 +717,7 @@ function handleKeyUp(e) {
         spacebar = false;
     }
 }
-startBtn.addEventListener('click', () => {
+startBtn.addEventListener('click', function () {
     if (startBtn.innerText === 'Start Game') {
         pieces.length > 0 ? pieces = [] : null;
         startBtn.innerText = 'End Game';
