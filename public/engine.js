@@ -16,9 +16,8 @@ import { right, left, down, up, spacebar } from './handlers/keyHandlers.js';
 import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js';
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js';
 import createPiece from './functions/createPiece.js';
-/**
- * matrix[rowIndex][columnIndex]
- **/
+import resetMatrix from './functions/resetMatrix.js';
+// matrix[rowIndex][columnIndex]
 export var matrix = [
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}],
@@ -31,6 +30,16 @@ export var matrix = [
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}]
 ];
+export var blockImages = {
+    green: greenBlock,
+    blue: blueBlock,
+    crystal: crystalBlock,
+    pink: pinkBlock,
+    yellow: yellowBlock,
+    red: redBlock,
+    white: whiteBlock,
+    orange: orangeBlock
+};
 export var maxRow_index = matrix.length - 1;
 export var maxColumn_index = matrix[0].length - 1;
 export var speed = 40; // rate of frames at which the piece falls
@@ -48,16 +57,6 @@ export var throwBomb = false;
 export var pieces = [];
 export var colorsInPlay = ["yellow", "blue", "crystal"];
 export var savedPositions = []; // coordinates of blocks removed
-export var blockImages = {
-    green: greenBlock,
-    blue: blueBlock,
-    crystal: crystalBlock,
-    pink: pinkBlock,
-    yellow: yellowBlock,
-    red: redBlock,
-    white: whiteBlock,
-    orange: orangeBlock
-};
 /**
  * SETERS
  */
@@ -68,6 +67,7 @@ export var setScoreMultiplier = function (newMultiplier) { return (scoreMultipli
 export var setThrowBomb = function (boo) { return (throwBomb = boo); };
 export var setBombsAvailable = function (n) { return (bombsAvailable = n); };
 export var setLongInPlay = function (boo) { return (longInPlay = boo); };
+export var setMatrix = function (arr) { return (matrix = arr); };
 export function gameLoop() {
     handleDifficulty();
     // Clean the canvas and count the frames
@@ -78,9 +78,8 @@ export function gameLoop() {
     // Update score
     scoreDiv.innerText = score.toString();
     // Create the first piece
-    if (pieces.length === 0) {
-        pieces = __spreadArray(__spreadArray([], pieces, true), [createPiece()], false);
-    }
+    if (pieces.length === 0)
+        setPieces(__spreadArray(__spreadArray([], pieces, true), [createPiece()], false));
     var AP; // Active piece
     // Draw all the pieces and initialize the active piece
     pieces.forEach(function (p) {
@@ -160,7 +159,7 @@ export function gameLoop() {
                     AP.isActive = false;
                 }
                 // Create a new piece
-                pieces.push(createPiece());
+                setPieces(__spreadArray(__spreadArray([], pieces, true), [createPiece()], false));
             }
         }
         if (AP.type === "long") {
@@ -176,7 +175,7 @@ export function gameLoop() {
                 else {
                     // Deactivate piece and create a new one
                     AP.isActive = false;
-                    pieces.push(createPiece());
+                    setPieces(__spreadArray(__spreadArray([], pieces, true), [createPiece()], false));
                 }
             }
             else {
@@ -189,7 +188,7 @@ export function gameLoop() {
                 else {
                     // Deactivate piece and create a new one
                     AP.isActive = false;
-                    pieces.push(createPiece());
+                    setPieces(__spreadArray(__spreadArray([], pieces, true), [createPiece()], false));
                 }
             }
         }
@@ -361,18 +360,7 @@ export function gameLoop() {
      * Start with a clean matrix and then fill it
      * with the position of each piece.
      */
-    matrix = [
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}],
-        [{}, {}, {}, {}, {}, {}]
-    ];
+    resetMatrix();
     var _loop_1 = function (row) {
         matrix[row].forEach(function (column, i) {
             matrix[row][i] = {

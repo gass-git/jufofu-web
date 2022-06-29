@@ -8,6 +8,7 @@ import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js'
 import createPiece from './functions/createPiece.js'
 import { BlockImage, Position } from './typeInterfaces.js'
+import resetMatrix from './functions/resetMatrix.js'
 
 // matrix[rowIndex][columnIndex]
 export var matrix: object[][] = [
@@ -62,6 +63,7 @@ export const setScoreMultiplier = (newMultiplier: number) => (scoreMultiplier = 
 export const setThrowBomb = (boo: boolean) => (throwBomb = boo)
 export const setBombsAvailable = (n: number) => (bombsAvailable = n)
 export const setLongInPlay = (boo: boolean) => (longInPlay = boo)
+export const setMatrix = (arr: object[][]) => (matrix = arr)
 
 export function gameLoop() {
   handleDifficulty()
@@ -76,9 +78,7 @@ export function gameLoop() {
   scoreDiv.innerText = score.toString()
 
   // Create the first piece
-  if (pieces.length === 0) {
-    pieces = [...pieces, createPiece()]
-  }
+  if (pieces.length === 0) setPieces([...pieces, createPiece()])
 
   var AP: any; // Active piece
 
@@ -100,7 +100,6 @@ export function gameLoop() {
    * Rotation
    */
   if (up && AP.type === "long" && !timeOut) {
-
     Long.rotate(AP, matrix, maxColumn_index)
     timeOut = true
     setTimeout(() => { timeOut = false }, 120)
@@ -181,7 +180,7 @@ export function gameLoop() {
         }
 
         // Create a new piece
-        pieces.push(createPiece())
+        setPieces([...pieces, createPiece()])
       }
     }
 
@@ -202,7 +201,7 @@ export function gameLoop() {
         else {
           // Deactivate piece and create a new one
           AP.isActive = false
-          pieces.push(createPiece())
+          setPieces([...pieces, createPiece()])
         }
 
       }
@@ -219,7 +218,7 @@ export function gameLoop() {
         else {
           // Deactivate piece and create a new one
           AP.isActive = false
-          pieces.push(createPiece())
+          setPieces([...pieces, createPiece()])
         }
       }
     }
@@ -443,23 +442,11 @@ export function gameLoop() {
 
   })
 
-
   /**
    * Start with a clean matrix and then fill it
    * with the position of each piece.
    */
-  matrix = [
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}],
-    [{}, {}, {}, {}, {}, {}]
-  ];
+  resetMatrix()
 
   // Populate matrix with empty objects
   for (let row = 0; row < matrix.length; row++) {
