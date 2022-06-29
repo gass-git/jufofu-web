@@ -12,13 +12,10 @@ import Block from './classes/block.js';
 import Long from './classes/long.js';
 import drawPiece from './functions/drawPiece.js';
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
-import handleDifficulty from './functions/handleDifficulty.js';
-import { right, left, down, up, spacebar } from './functions/keyHandlers.js';
+import handleDifficulty from './handlers/handleDifficulty.js';
+import { right, left, down, up, spacebar } from './handlers/keyHandlers.js';
 import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js';
-import { handleKeyDown, handleKeyUp } from './functions/keyHandlers.js';
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js';
-document.addEventListener("keydown", handleKeyDown, false);
-document.addEventListener("keyup", handleKeyUp, false);
 /**
  * matrix[rowIndex][columnIndex]
  **/

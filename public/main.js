@@ -1,16 +1,10 @@
-import { gameLoop, pieces, setPieces } from './engine.js';
+import { gameLoop } from './engine.js';
+import { handleKeyDown, handleKeyUp } from './handlers/keyHandlers.js';
 import { startBtn } from './utilities/elements.js';
-function init() {
+import handleStartBtn from './handlers/handleStartBtn.js';
+export function init() {
     window.requestAnimationFrame(gameLoop);
 }
-startBtn.addEventListener('click', function () {
-    if (startBtn.innerText === 'Start Game') {
-        pieces.length > 0 ? setPieces([]) : null;
-        startBtn.innerText = 'End Game';
-        init();
-    }
-    else {
-        location.reload();
-    }
-    document.activeElement.blur();
-});
+document.addEventListener("keydown", handleKeyDown, false);
+document.addEventListener("keyup", handleKeyUp, false);
+startBtn.addEventListener("click", handleStartBtn, false);

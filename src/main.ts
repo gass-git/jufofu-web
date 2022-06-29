@@ -1,19 +1,13 @@
-import { gameLoop, pieces, setPieces } from './engine.js'
+import { gameLoop } from './engine.js'
+import { handleKeyDown, handleKeyUp } from './handlers/keyHandlers.js'
 import { startBtn } from './utilities/elements.js'
+import handleStartBtn from './handlers/handleStartBtn.js'
 
-function init() {
+export function init() {
   window.requestAnimationFrame(gameLoop)
 }
 
-startBtn.addEventListener('click', () => {
-  if (startBtn.innerText === 'Start Game') {
-    pieces.length > 0 ? setPieces([]) : null
-    startBtn.innerText = 'End Game'
-    init()
-  }
-  else {
-    location.reload()
-  }
+document.addEventListener("keydown", handleKeyDown, false)
+document.addEventListener("keyup", handleKeyUp, false)
+startBtn.addEventListener("click", handleStartBtn, false)
 
-  (document.activeElement as HTMLElement).blur();
-})
