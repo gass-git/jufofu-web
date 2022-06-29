@@ -1,5 +1,4 @@
 import Bomb from './classes/bomb.js'
-import Block from './classes/block.js'
 import Long from './classes/long.js'
 import drawPiece from './functions/drawPiece.js'
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js'
@@ -8,10 +7,9 @@ import { right, left, down, up, spacebar } from './handlers/keyHandlers.js'
 import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js'
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js'
 import createPiece from './functions/createPiece.js'
+import { BlockImage, Position } from './typeInterfaces.js'
 
-/**
- * matrix[rowIndex][columnIndex]
- **/
+// matrix[rowIndex][columnIndex]
 export var matrix: object[][] = [
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}],
@@ -24,6 +22,17 @@ export var matrix: object[][] = [
   [{}, {}, {}, {}, {}, {}],
   [{}, {}, {}, {}, {}, {}]
 ]
+
+export var blockImages: BlockImage = {
+  green: greenBlock,
+  blue: blueBlock,
+  crystal: crystalBlock,
+  pink: pinkBlock,
+  yellow: yellowBlock,
+  red: redBlock,
+  white: whiteBlock,
+  orange: orangeBlock
+}
 
 export var maxRow_index = matrix.length - 1
 export var maxColumn_index = matrix[0].length - 1
@@ -41,29 +50,7 @@ export var bombsAvailable: number = 0
 export var throwBomb: boolean = false
 export var pieces: any = []
 export var colorsInPlay: string[] = ["yellow", "blue", "crystal"]
-
-interface Position {
-  x: number;
-  y: number;
-  frameCount: number;
-}
-
 export var savedPositions: Position[] = []          // coordinates of blocks removed
-
-interface BlockImage {
-  [key: string]: object
-}
-
-export var blockImages: BlockImage = {
-  green: greenBlock,
-  blue: blueBlock,
-  crystal: crystalBlock,
-  pink: pinkBlock,
-  yellow: yellowBlock,
-  red: redBlock,
-  white: whiteBlock,
-  orange: orangeBlock
-}
 
 /**
  * SETERS
@@ -77,7 +64,6 @@ export const setBombsAvailable = (n: number) => (bombsAvailable = n)
 export const setLongInPlay = (boo: boolean) => (longInPlay = boo)
 
 export function gameLoop() {
-
   handleDifficulty()
 
   // Clean the canvas and count the frames
