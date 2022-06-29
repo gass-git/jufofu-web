@@ -1,3 +1,4 @@
+import { setSpeed, setColorsInPlay, setScoreMultiplier, colorsInPlay, totalFrameCount } from '../engine.js'
 
 /**
 * - Add speed and increase score reward as game evolves and 
@@ -5,13 +6,7 @@
 * - Add new colors to the game after a certain
 * number of frames.
 */
-export default function handleDifficulty(
-  totalFrameCount: number,
-  colorsInPlay: any,
-  setColorsInPlay: any,
-  setSpeed: any,
-  setScoreMultiplier: any
-) {
+export default function handleDifficulty() {
   switch (totalFrameCount) {
     case 1000:
       setColorsInPlay([...colorsInPlay, "pink"])

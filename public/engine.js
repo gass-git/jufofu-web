@@ -8,7 +8,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import Bomb from './classes/bomb.js';
-import Block from './classes/block.js';
 import Long from './classes/long.js';
 import drawPiece from './functions/drawPiece.js';
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
@@ -16,10 +15,11 @@ import handleDifficulty from './handlers/handleDifficulty.js';
 import { right, left, down, up, spacebar } from './handlers/keyHandlers.js';
 import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/elements.js';
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js';
+import createPiece from './functions/createPiece.js';
 /**
  * matrix[rowIndex][columnIndex]
  **/
-var matrix = [
+export var matrix = [
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}],
@@ -31,24 +31,24 @@ var matrix = [
     [{}, {}, {}, {}, {}, {}],
     [{}, {}, {}, {}, {}, {}]
 ];
-var maxRow_index = matrix.length - 1;
-var maxColumn_index = matrix[0].length - 1;
-var speed = 40; // rate of frames at which the piece falls
-var boost = 5; // the smaller the number, the faster the piece will fall
-var score = 0;
-var scoreMultiplier = 1;
-var totalFrameCount = 0;
-var frameCount = 0;
-var isGameOver = false;
-var timeOut = false;
-var longInPlay = false;
-var fill = 0; // variable for progress bar functionality
-var bombsAvailable = 0;
-var throwBomb = false;
+export var maxRow_index = matrix.length - 1;
+export var maxColumn_index = matrix[0].length - 1;
+export var speed = 40; // rate of frames at which the piece falls
+export var boost = 5; // the smaller the number, the faster the piece will fall
+export var score = 0;
+export var scoreMultiplier = 1;
+export var totalFrameCount = 0;
+export var frameCount = 0;
+export var isGameOver = false;
+export var timeOut = false;
+export var longInPlay = false;
+export var fill = 0; // variable for progress bar functionality
+export var bombsAvailable = 0;
+export var throwBomb = false;
 export var pieces = [];
-var colorsInPlay = ["yellow", "blue", "crystal"];
-var savedPositions = []; // coordinates of blocks removed
-var blockImages = {
+export var colorsInPlay = ["yellow", "blue", "crystal"];
+export var savedPositions = []; // coordinates of blocks removed
+export var blockImages = {
     green: greenBlock,
     blue: blueBlock,
     crystal: crystalBlock,
@@ -65,8 +65,11 @@ export var setPieces = function (newArr) { return (pieces = newArr); };
 export var setColorsInPlay = function (newArr) { return (colorsInPlay = newArr); };
 export var setSpeed = function (newSpeed) { return (speed = newSpeed); };
 export var setScoreMultiplier = function (newMultiplier) { return (scoreMultiplier = newMultiplier); };
+export var setThrowBomb = function (boo) { return (throwBomb = boo); };
+export var setBombsAvailable = function (n) { return (bombsAvailable = n); };
+export var setLongInPlay = function (boo) { return (longInPlay = boo); };
 export function gameLoop() {
-    handleDifficulty(totalFrameCount, colorsInPlay, setColorsInPlay, setSpeed, setScoreMultiplier);
+    handleDifficulty();
     // Clean the canvas and count the frames
     // @ts-ignore: Unreachable code error
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -488,41 +491,4 @@ export function gameLoop() {
     }
     savedPositions = savedPositions.filter(function (pos) { return pos.frameCount > 0; });
     isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop);
-}
-function createPiece() {
-    if (throwBomb) {
-        throwBomb = false;
-        bombsAvailable -= 1;
-        return new Bomb();
-    }
-    else {
-        var rand = Math.random();
-        /**
-         * Only one longInPlay is allowed to be in play,
-         * having more would create many issues..
-         */
-        // Is there a longInPlay?
-        for (var _i = 0, pieces_1 = pieces; _i < pieces_1.length; _i++) {
-            var p = pieces_1[_i];
-            if (p.type === "long") {
-                longInPlay = true;
-                break;
-            }
-            else {
-                longInPlay = false;
-            }
-        }
-        // Get random color from colors in play
-        var randomColor = colorsInPlay[Math.floor(Math.random() * (colorsInPlay.length))];
-        // IMPORTANT: make sure the function ALWAYS returns a piece
-        if (rand < 0.15 && !longInPlay) {
-            return new Long();
-        }
-        else if (rand < 0.25) {
-            return new Block('crystal', blockImages);
-        }
-        else {
-            return new Block(randomColor, blockImages);
-        }
-    }
 }

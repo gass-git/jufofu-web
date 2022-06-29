@@ -7,13 +7,14 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
+import { setSpeed, setColorsInPlay, setScoreMultiplier, colorsInPlay, totalFrameCount } from '../engine.js';
 /**
 * - Add speed and increase score reward as game evolves and
 *
 * - Add new colors to the game after a certain
 * number of frames.
 */
-export default function handleDifficulty(totalFrameCount, colorsInPlay, setColorsInPlay, setSpeed, setScoreMultiplier) {
+export default function handleDifficulty() {
     switch (totalFrameCount) {
         case 1000:
             setColorsInPlay(__spreadArray(__spreadArray([], colorsInPlay, true), ["pink"], false));

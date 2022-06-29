@@ -1,7 +1,12 @@
-export default function createPiece(throwBomb, bombsAvailable, Bomb, Long, Block, longInPlay, pieces, colorsInPlay, blockImages) {
+import Bomb from '../classes/bomb.js';
+import Block from '../classes/block.js';
+import Long from '../classes/long.js';
+import { throwBomb, bombsAvailable, longInPlay, pieces, colorsInPlay, blockImages } from '../engine.js';
+import { setThrowBomb, setBombsAvailable, setLongInPlay } from '../engine.js';
+export default function createPiece() {
     if (throwBomb) {
-        throwBomb = false;
-        bombsAvailable -= 1;
+        setThrowBomb(false);
+        setBombsAvailable(bombsAvailable - 1);
         return new Bomb();
     }
     else {
@@ -14,11 +19,11 @@ export default function createPiece(throwBomb, bombsAvailable, Bomb, Long, Block
         for (var _i = 0, pieces_1 = pieces; _i < pieces_1.length; _i++) {
             var p = pieces_1[_i];
             if (p.type === "long") {
-                longInPlay = true;
+                setLongInPlay(true);
                 break;
             }
             else {
-                longInPlay = false;
+                setLongInPlay(false);
             }
         }
         // Get random color from colors in play
