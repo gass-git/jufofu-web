@@ -9,6 +9,7 @@ import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, 
 import createPiece from './functions/createPiece.js'
 import { BlockImage, Position } from './typeInterfaces.js'
 import resetMatrix from './functions/resetMatrix.js'
+import handleRotation from './handlers/handleRotation.js'
 
 // matrix[rowIndex][columnIndex]
 export var matrix: object[][] = [
@@ -53,9 +54,7 @@ export var pieces: any = []
 export var colorsInPlay: string[] = ["yellow", "blue", "crystal"]
 export var savedPositions: Position[] = []          // coordinates of blocks removed
 
-/**
- * SETERS
- */
+// setters
 export const setPieces = (newArr: any) => (pieces = newArr)
 export const setColorsInPlay = (newArr: any) => (colorsInPlay = newArr)
 export const setSpeed = (newSpeed: number) => (speed = newSpeed)
@@ -64,6 +63,7 @@ export const setThrowBomb = (boo: boolean) => (throwBomb = boo)
 export const setBombsAvailable = (n: number) => (bombsAvailable = n)
 export const setLongInPlay = (boo: boolean) => (longInPlay = boo)
 export const setMatrix = (arr: object[][]) => (matrix = arr)
+export const updateTimeOut = (boo: boolean) => (timeOut = boo)
 
 export function gameLoop() {
   handleDifficulty()
@@ -100,9 +100,7 @@ export function gameLoop() {
    * Rotation
    */
   if (up && AP.type === "long" && !timeOut) {
-    Long.rotate(AP, matrix, maxColumn_index)
-    timeOut = true
-    setTimeout(() => { timeOut = false }, 120)
+    handleRotation(AP)
   }
 
   /** 
@@ -489,7 +487,6 @@ export function gameLoop() {
   /** 
    * If pieces have been filtered out, re-arrange pieces position
    * above the lines been removed.
-   * 
    */
   pieces.forEach((p: any) => {
 
@@ -585,7 +582,6 @@ export function gameLoop() {
     }
   }
 
-
   // Animation effects: sparkles on bomb explosion
   if (savedPositions.length > 0) {
     savedPositions.forEach((pos, i) => {
@@ -598,4 +594,3 @@ export function gameLoop() {
 
   isGameOver ? location.reload() : window.requestAnimationFrame(gameLoop)
 }
-

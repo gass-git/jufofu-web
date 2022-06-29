@@ -8,7 +8,6 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import Bomb from './classes/bomb.js';
-import Long from './classes/long.js';
 import drawPiece from './functions/drawPiece.js';
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
 import handleDifficulty from './handlers/handleDifficulty.js';
@@ -17,6 +16,7 @@ import { canvas, ctx, scoreDiv, progressBar, bombsInventory } from './utilities/
 import { greenBlock, blueBlock, pinkBlock, crystalBlock, yellowBlock, redBlock, whiteBlock, orangeBlock, particle } from './utilities/sprites.js';
 import createPiece from './functions/createPiece.js';
 import resetMatrix from './functions/resetMatrix.js';
+import handleRotation from './handlers/handleRotation.js';
 // matrix[rowIndex][columnIndex]
 export var matrix = [
     [{}, {}, {}, {}, {}, {}],
@@ -57,9 +57,7 @@ export var throwBomb = false;
 export var pieces = [];
 export var colorsInPlay = ["yellow", "blue", "crystal"];
 export var savedPositions = []; // coordinates of blocks removed
-/**
- * SETERS
- */
+// setters
 export var setPieces = function (newArr) { return (pieces = newArr); };
 export var setColorsInPlay = function (newArr) { return (colorsInPlay = newArr); };
 export var setSpeed = function (newSpeed) { return (speed = newSpeed); };
@@ -68,6 +66,7 @@ export var setThrowBomb = function (boo) { return (throwBomb = boo); };
 export var setBombsAvailable = function (n) { return (bombsAvailable = n); };
 export var setLongInPlay = function (boo) { return (longInPlay = boo); };
 export var setMatrix = function (arr) { return (matrix = arr); };
+export var updateTimeOut = function (boo) { return (timeOut = boo); };
 export function gameLoop() {
     handleDifficulty();
     // Clean the canvas and count the frames
@@ -97,9 +96,7 @@ export function gameLoop() {
      * Rotation
      */
     if (up && AP.type === "long" && !timeOut) {
-        Long.rotate(AP, matrix, maxColumn_index);
-        timeOut = true;
-        setTimeout(function () { timeOut = false; }, 120);
+        handleRotation(AP);
     }
     /**
      * VERTICAL MOVEMENT
@@ -396,7 +393,6 @@ export function gameLoop() {
     /**
      * If pieces have been filtered out, re-arrange pieces position
      * above the lines been removed.
-     *
      */
     pieces.forEach(function (p) {
         var lowestAvailableRow = getLowestAvailableRow(p, matrix, maxRow_index);

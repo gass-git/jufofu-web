@@ -1,6 +1,5 @@
 import { setMatrix } from '../engine.js';
 export default function resetMatrix() {
-    console.log('matrix reset');
     setMatrix([
         [{}, {}, {}, {}, {}, {}],
         [{}, {}, {}, {}, {}, {}],
