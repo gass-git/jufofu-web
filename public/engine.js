@@ -7,7 +7,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-import Bomb from './classes/bomb.js';
+import Bomb from './classes/pieces/bomb.js';
 import drawPiece from './functions/drawPiece.js';
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js';
 import handleDifficulty from './handlers/handleDifficulty.js';

@@ -1,6 +1,6 @@
-import Bomb from '../classes/bomb.js';
-import Block from '../classes/block.js';
-import Long from '../classes/long.js';
+import Bomb from '../classes/pieces/bomb.js';
+import Block from '../classes/pieces/block.js';
+import Long from '../classes/pieces/long.js';
 import { throwBomb, bombsAvailable, longInPlay, pieces, colorsInPlay, blockImages } from '../engine.js';
 import { setThrowBomb, setBombsAvailable, setLongInPlay } from '../engine.js';
 export default function createPiece() {
