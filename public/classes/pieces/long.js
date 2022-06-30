@@ -1,20 +1,31 @@
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+import Piece from '../piece.js';
 var tallCrystal = new Image();
 var flatCrystal = new Image();
 tallCrystal.src = "inGame_images/tallCrystal.png";
 flatCrystal.src = "inGame_images/flatCrystal.png";
-var Long = /** @class */ (function () {
+var Long = /** @class */ (function (_super) {
+    __extends(Long, _super);
     function Long() {
-        this.type = "long",
-            this.isVertical = true,
-            this.color = "crystal",
-            this.image = tallCrystal,
-            this.x = 120,
-            this.y = 0,
-            this.isRearranging = false,
-            this.prevBottomRowPos = null,
-            this.isActive = true,
-            this.usingColumns = [3],
-            this.usingRows = [0, 1, 2];
+        var _this = _super.call(this, 'long', 'crystal', tallCrystal, [3], [0, 1, 2]) || this;
+        _this.isVertical = true;
+        _this.isRearranging = false;
+        _this.prevBottomRowPos = null;
+        return _this;
     }
     Long.rotate = function (p, matrix, maxColumn_index) {
         if (p.isVertical) {
@@ -75,5 +86,5 @@ var Long = /** @class */ (function () {
         }
     };
     return Long;
-}());
+}(Piece));
 export default Long;

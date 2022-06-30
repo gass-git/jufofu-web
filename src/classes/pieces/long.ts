@@ -1,34 +1,21 @@
+import Piece from '../piece.js'
+
 const tallCrystal = new Image()
 const flatCrystal = new Image()
 
 tallCrystal.src = "inGame_images/tallCrystal.png"
 flatCrystal.src = "inGame_images/flatCrystal.png"
 
-export default class Long {
-  type: string;
+export default class Long extends Piece {
   isVertical: boolean;
-  color: string;
-  image: object;
-  x: number;
-  y: number;
   isRearranging: boolean;
   prevBottomRowPos: number | null;
-  isActive: boolean;
-  usingColumns: number[];
-  usingRows: number[];
 
   constructor() {
-    this.type = "long",
-      this.isVertical = true,
-      this.color = "crystal",
-      this.image = tallCrystal,
-      this.x = 120,
-      this.y = 0,
-      this.isRearranging = false,
-      this.prevBottomRowPos = null,
-      this.isActive = true,
-      this.usingColumns = [3],
-      this.usingRows = [0, 1, 2]
+    super('long', 'crystal', tallCrystal, [3], [0, 1, 2])
+    this.isVertical = true
+    this.isRearranging = false
+    this.prevBottomRowPos = null
   }
 
   static rotate(p: Long, matrix: any, maxColumn_index: number) {

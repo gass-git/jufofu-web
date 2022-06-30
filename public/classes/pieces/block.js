@@ -18,8 +18,8 @@ var Block = /** @class */ (function (_super) {
     __extends(Block, _super);
     function Block(color, blockImages) {
         var _this = _super.call(this, 'block', color, blockImages[color], [3], [0]) || this;
-        _this.isRearranging = false,
-            _this.prevRowPos = null;
+        _this.isRearranging = false;
+        _this.prevRowPos = null;
         return _this;
     }
     return Block;

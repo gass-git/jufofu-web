@@ -1,31 +1,15 @@
 import { setPieces } from "../../engine.js"
+import Piece from '../piece.js'
 
 const bombImage = new Image()
 bombImage.src = "inGame_images/blackCircle.png"
 
-export default class Bomb {
-  type: string;
-  color: string | null;
-  image: object;
-  x: number;
-  y: number;
-  isActive: boolean;
-  usingColumns: number[];
-  usingRows: number[];
-
+export default class Bomb extends Piece {
   constructor() {
-    this.type = "bomb"
-    this.color = null,
-      this.image = bombImage,
-      this.x = 120,
-      this.y = 0,
-      this.isActive = true,
-      this.usingColumns = [3],
-      this.usingRows = [0]
+    super('bomb', null, bombImage, [3], [0])
   }
 
   static explode(p: Bomb, savedPositions: any, pieces: any) {
-
     let bombColumn = p.usingColumns[0]
     let bombRow = p.usingRows[0]
 

@@ -6,7 +6,7 @@ export default class Block extends Piece {
 
   constructor(color: string, blockImages: any) {
     super('block', color, blockImages[color], [3], [0])
-    this.isRearranging = false,
-      this.prevRowPos = null
+    this.isRearranging = false
+    this.prevRowPos = null
   }
 }
