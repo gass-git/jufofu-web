@@ -1,5 +1,4 @@
 import Bomb from './classes/pieces/bomb.js'
-import Long from './classes/pieces/long.js'
 import drawPiece from './functions/drawPiece.js'
 import getLowestAvailableRow from './functions/getLowestAvailableRow.js'
 import handleDifficulty from './handlers/handleDifficulty.js'
